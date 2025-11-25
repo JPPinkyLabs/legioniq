@@ -1,0 +1,15 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true
+  },
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "files.associations": {
+    "supabase/functions/**/*.ts": "deno"
+  },
+  "deno.enable": false,
+  "deno.enablePaths": ["supabase/functions"]
+}
+

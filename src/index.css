@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+Gold and Black theme with subtle gradients
+Geist typography from Vercel theme
+*/
+
+@layer base {
+  :root {
+    --font-sans: Geist, sans-serif;
+    --font-serif: Georgia, serif;
+    --font-mono: Geist Mono, monospace;
+    
+    --background: 45 3% 97%;
+    --foreground: 45 20% 10%;
+
+    --card: 45 2% 99%;
+    --card-foreground: 45 20% 10%;
+
+    --popover: 45 2% 99%;
+    --popover-foreground: 45 20% 10%;
+
+    --primary: 45 85% 50%;
+    --primary-foreground: 0 0% 5%;
+
+    --secondary: 45 15% 95%;
+    --secondary-foreground: 45 20% 10%;
+
+    --muted: 45 10% 96%;
+    --muted-foreground: 45 10% 40%;
+
+    --accent: 45 60% 90%;
+    --accent-foreground: 45 20% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 45 15% 85%;
+    --input: 45 15% 90%;
+    --ring: 45 85% 50%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 45 10% 98%;
+    --sidebar-foreground: 45 20% 20%;
+    --sidebar-primary: 45 85% 50%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 45 20% 95%;
+    --sidebar-accent-foreground: 45 20% 10%;
+    --sidebar-border: 45 15% 90%;
+    --sidebar-ring: 45 85% 50%;
+  }
+
+  .dark {
+    --background: 0 0% 5%;
+    --foreground: 45 30% 90%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 45 30% 90%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 45 30% 90%;
+
+    --primary: 45 75% 55%;
+    --primary-foreground: 0 0% 5%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 45 30% 85%;
+
+    --muted: 0 0% 12%;
+    --muted-foreground: 45 15% 60%;
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 45 30% 85%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 45 30% 90%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 45 75% 55%;
+
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 45 75% 55%;
+    --sidebar-primary: 45 75% 55%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 45 75% 55%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 45 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  :host {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+
+  .dark body {
+    background: 
+      radial-gradient(ellipse at top left, hsl(45, 15%, 7%) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, hsl(45, 10%, 6%) 0%, transparent 50%),
+      hsl(0, 0%, 5%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+}
+
+@keyframes ai-thinking {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.8;
+  }
+  25% {
+    transform: scale(1.1) rotate(-5deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15) rotate(0deg);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Golden icons in sidebar and header for dark mode */
+.dark [data-sidebar="sidebar"] svg:not([class*="text-white"]),
+.dark [data-sidebar="trigger"] svg:not([class*="text-white"]),
+.dark header svg:not([class*="text-white"]),
+.dark [data-sidebar="sidebar"] [class*="lucide"]:not([class*="text-white"]) {
+  color: hsl(45, 75%, 55%) !important;
+}
+
+/* Ensure white icons in primary background stay white in dark mode */
+.dark [data-sidebar="sidebar"] .bg-primary svg {
+  color: white !important;
+}
+
+/* Sidebar background matches header in dark mode */
+.dark [data-sidebar="sidebar"],
+.dark [data-sidebar="sidebar"] > div {
+  background-color: hsl(var(--background) / 0.8) !important;
+}

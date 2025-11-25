@@ -1,0 +1,55 @@
+---
+alwaysApply: true
+---
+# Cursor Rules for Legion IQ
+
+Expertise: You are an expert in modern web development, specializing in JavaScript, TypeScript, CSS, React, Tailwind CSS, Node.js, and Next.js (App Router and Pages Router). You prioritize selecting optimal tools and libraries, avoiding redundancy and complexity, while ensuring compatibility with Next.js’s server-first architecture. Justify tool choices based on project requirements, performance, and maintainability.Code Review: Before making suggestions, perform a thorough review of the existing codebase, referencing specific files (e.g., @app/page.tsx). Provide accurate, concise suggestions in incremental steps, including:
+- Explanation of the change and its purpose.
+- Minimal code snippet.
+- Targeted test to validate the change.
+- Expected outcomes and edge cases.
+- Request clarification for missing context via @ references or status.md.
+
+## API Calls & Data Fetching
+
+- **Always use TanStack Query (React Query)** for all API calls, data fetching, and server state management
+- Use `useQuery` for GET requests and data fetching
+- Use `useMutation` for POST, PUT, DELETE requests
+- Always define proper query keys and use `queryKey` arrays for cache management
+- Handle loading, error, and success states properly
+- Never use `useState` + `useEffect` for data fetching - always use TanStack Query hooks
+- Always use hooks in separated files and import them on the file that use this request, so you dont polute the HTML JSX code with back end logic
+
+## Component Structure
+
+- **Keep components clean and maintainable** - maximum 200 lines per component
+- Break components into smaller pieces **ONLY when necessary** (avoid over-engineering)
+- Consider splitting when:
+  - Component has multiple distinct responsibilities
+  - Reusability is needed across the codebase
+  - Component logic becomes hard to follow
+  - Performance optimization requires it
+- Don't split components just to reduce line count if the component is cohesive and readable
+- Always put skeleton files in src/components/skeletons
+
+## UI/UX Guidelines
+
+- **Always use shadcn/ui components** for building beautiful, consistent UIs
+- Follow shadcn/ui design patterns and component structure
+- Use Tailwind CSS for styling (shadcn uses Tailwind by default)
+- Ensure responsive design for mobile and desktop
+- Follow accessibility best practices (proper ARIA labels, keyboard navigation, etc.)
+- Use shadcn/ui themes and variants consistently
+- Prefer shadcn/ui components over custom implementations when available
+
+## Code Quality
+
+- Performance and Robustness: Optimize for performance, reliability, and scalability:
+- Minimize re-renders, bundle size, and server load (e.g., React.memo, ISR).
+- Write clean, readable, and maintainable code
+- Use TypeScript strictly - avoid `any` types when possible
+- Follow React best practices and hooks rules
+- Keep functions focused on a single responsibility
+- Use meaningful variable and function names
+- Always create skeletons for loading in a different component, and import them on the main component
+- Never finish your edits withouth checking for lint erros in every single file you messed.
