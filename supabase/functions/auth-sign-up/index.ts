@@ -59,14 +59,15 @@ serve(async (req) => {
       session = sessionData?.session || null;
     }
 
-    // Check if user is approved
+    // Check if user is approved and get role
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .select("is_approved")
+      .select("is_approved, role")
       .eq("id", signUpData.user.id)
       .single();
 
     const isApproved = profile?.is_approved ?? false;
+    const role = profile?.role ?? "user";
 
     if (!isApproved) {
       // Sign out user if not approved
@@ -83,6 +84,7 @@ serve(async (req) => {
             user_metadata: signUpData.user.user_metadata,
           },
           isApproved: false,
+          role: role,
         }),
         {
           status: 200,
@@ -118,6 +120,7 @@ serve(async (req) => {
         user_metadata: signUpData.user.user_metadata,
       },
       isApproved: true,
+      role: role,
     };
 
     return new Response(JSON.stringify(response), {

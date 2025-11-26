@@ -26,11 +26,13 @@ interface AuthState {
   avatarUrl: string | null;
   profileUpdatedAt: string | null;
   avatarUrlGeneratedAt: number | null;
+  role: string | null;
   
   setSession: (session: Session | null) => void;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
   setAvatarUrl: (url: string | null) => void;
+  setRole: (role: string | null) => void;
   loadAvatarUrl: (forceRefresh?: boolean, profileData?: { avatar_url: string | null; updated_at: string | null; created_at: string | null }) => Promise<void>;
   initialize: () => Promise<void>;
   signIn: (data: SignInFormData) => Promise<{ success: boolean; error?: string; isApproved?: boolean }>;
@@ -51,6 +53,7 @@ export const useAuthStore = create<AuthState>()(
       avatarUrl: null,
       profileUpdatedAt: null,
       avatarUrlGeneratedAt: null,
+      role: null,
 
       setSession: (session) => {
         set({ session, user: session?.user ?? null });
@@ -66,6 +69,10 @@ export const useAuthStore = create<AuthState>()(
 
       setAvatarUrl: (url) => {
         set({ avatarUrl: url });
+      },
+
+      setRole: (role) => {
+        set({ role });
       },
 
       loadAvatarUrl: async (forceRefresh = false, profileData?: { avatar_url: string | null; updated_at: string | null; created_at: string | null }) => {
@@ -261,6 +268,12 @@ export const useAuthStore = create<AuthState>()(
                 user: updatedSession.user ?? null, 
                 loading: false 
               });
+              
+              // Set role from response
+              if (data.role) {
+                get().setRole(data.role);
+              }
+              
               // Always verify and refresh avatar URL after initialization
               // This ensures signed URLs are regenerated if expired
               get().loadAvatarUrl().catch((error) => {
@@ -298,6 +311,10 @@ export const useAuthStore = create<AuthState>()(
 
           if (responseData.isApproved === false) {
             get().clearAuth();
+            // Set role even if not approved
+            if (responseData.role) {
+              get().setRole(responseData.role);
+            }
             return { success: true, isApproved: false };
           }
 
@@ -312,6 +329,11 @@ export const useAuthStore = create<AuthState>()(
             
             if (session) {
               set({ session, user: session.user });
+              
+              // Set role from response
+              if (responseData.role) {
+                get().setRole(responseData.role);
+              }
               
               // Load avatar URL after successful sign in (will use cached if available)
               get().loadAvatarUrl().catch((error) => {
@@ -361,6 +383,10 @@ export const useAuthStore = create<AuthState>()(
           if (responseData.isApproved === false) {
             get().clearAuth();
             set({ isSigningUp: false });
+            // Set role even if not approved
+            if (responseData.role) {
+              get().setRole(responseData.role);
+            }
             
             toast.success("Account created!", {
               description: "Your account has been created successfully.",
@@ -380,6 +406,11 @@ export const useAuthStore = create<AuthState>()(
             
             if (session) {
               set({ session, user: session.user, isSigningUp: false });
+
+              // Set role from response
+              if (responseData.role) {
+                get().setRole(responseData.role);
+              }
 
               // Load avatar URL after successful sign up (will use cached if available)
               get().loadAvatarUrl().catch((error) => {
@@ -471,7 +502,8 @@ export const useAuthStore = create<AuthState>()(
           isSigningUp: false,
           avatarUrl: null,
           profileUpdatedAt: null,
-          avatarUrlGeneratedAt: null
+          avatarUrlGeneratedAt: null,
+          role: null
         });
       },
 
@@ -507,6 +539,7 @@ export const useAuthStore = create<AuthState>()(
         avatarUrl: state.avatarUrl,
         profileUpdatedAt: state.profileUpdatedAt,
         avatarUrlGeneratedAt: state.avatarUrlGeneratedAt,
+        role: state.role,
       }),
     }
   )

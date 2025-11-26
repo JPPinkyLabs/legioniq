@@ -350,11 +350,11 @@ async function formatUserPreferences(supabaseAdmin: any, preferences: any[]): Pr
 }
 
 // Helper: Get prompt from database
-async function getPromptFromDatabase(supabaseAdmin: any, category: string): Promise<string> {
+async function getPromptFromDatabase(supabaseAdmin: any, categoryId: string): Promise<string> {
   const { data: promptData, error: promptError } = await supabaseAdmin
     .from("prompts")
     .select("prompt_text")
-    .eq("category", category)
+    .eq("category_id", categoryId)
     .single();
   
   if (promptError || !promptData) {
@@ -732,7 +732,7 @@ serve(async (req) => {
 
     // Step 6: Get category enum and prompt from database
     const categoryEnum = await getCategoryFromId(supabaseAdmin, categoryId);
-    const systemPrompt = await getPromptFromDatabase(supabaseAdmin, categoryEnum);
+    const systemPrompt = await getPromptFromDatabase(supabaseAdmin, categoryId);
 
     // Step 7: Upload images to storage
     const requestId = generateRequestId();

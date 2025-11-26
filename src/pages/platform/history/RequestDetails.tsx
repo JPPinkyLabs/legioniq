@@ -4,7 +4,7 @@ import { ArrowLeft, AlertCircle, Image as ImageIcon, FileText } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ErrorEmpty } from "@/components/ErrorEmpty";
-import { RequestDetails2Skeleton } from "@/components/skeletons/RequestDetails2Skeleton";
+import { RequestDetailsSkeleton } from "@/components/skeletons/RequestDetailsSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRequest } from "@/hooks/requests/useRequest";
 import { useFormattedDate } from "@/hooks/formatting/useFormattedDate";
@@ -140,7 +140,7 @@ const RequestDetails = () => {
         </div>
 
         {isLoading ? (
-          <RequestDetails2Skeleton />
+          <RequestDetailsSkeleton />
         ) : error ? (
           <ErrorEmpty
             icon={AlertCircle}

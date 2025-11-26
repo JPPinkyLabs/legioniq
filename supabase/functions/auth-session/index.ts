@@ -38,14 +38,15 @@ serve(async (req) => {
       );
     }
 
-    // Check if user is approved
+    // Check if user is approved and get role
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .select("is_approved")
+      .select("is_approved, role")
       .eq("id", user.id)
       .single();
 
     const isApproved = profile?.is_approved ?? false;
+    const role = profile?.role ?? "user";
 
     if (!isApproved) {
       return new Response(
@@ -53,6 +54,7 @@ serve(async (req) => {
           session: undefined,
           user: undefined,
           isApproved: false,
+          role: role,
           error: "Account pending approval",
         }),
         {
@@ -82,6 +84,7 @@ serve(async (req) => {
         user_metadata: user.user_metadata,
       },
       isApproved: true,
+      role: role,
     };
 
     return new Response(JSON.stringify(response), {

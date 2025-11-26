@@ -121,24 +121,86 @@ export type Database = {
       }
       prompts: {
         Row: {
-          category: Database["public"]["Enums"]["app_category"]
+          category_id: string
+          created_at: string | null
+          created_by: string | null
           id: string
           prompt_text: string
-          updated_at: string | null
         }
         Insert: {
-          category: Database["public"]["Enums"]["app_category"]
+          category_id: string
+          created_at?: string | null
+          created_by?: string | null
           id?: string
           prompt_text: string
-          updated_at?: string | null
         }
         Update: {
-          category?: Database["public"]["Enums"]["app_category"]
+          category_id?: string
+          created_at?: string | null
+          created_by?: string | null
           id?: string
           prompt_text?: string
-          updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "prompts_category_id_fkey"
+            columns: ["category_id"]
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompts_created_by_fkey"
+            columns: ["created_by"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      prompts_logs: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          edited_by: string
+          id: string
+          prompt_id: string
+          prompt_text: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          edited_by: string
+          id?: string
+          prompt_id: string
+          prompt_text: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          edited_by?: string
+          id?: string
+          prompt_id?: string
+          prompt_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompts_logs_prompt_id_fkey"
+            columns: ["prompt_id"]
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompts_logs_edited_by_fkey"
+            columns: ["edited_by"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompts_logs_category_id_fkey"
+            columns: ["category_id"]
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       requests: {
         Row: {

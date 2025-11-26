@@ -1,7 +1,8 @@
-import { Sparkles, MessagesSquare, Plus, type LucideIcon } from "lucide-react";
+import { Sparkles, MessagesSquare, Plus, FileText, type LucideIcon } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useUserUtils } from "@/hooks/auth/useUserUtils";
+import { useAuthStore } from "@/stores/authStore";
 import { useSettingsModal } from "@/contexts/SettingsModalContext";
 
 import { NavMain } from "@/components/navigation/NavMain";
@@ -41,6 +42,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { role } = useAuthStore();
   const { isMobile, setOpenMobile } = useSidebar();
   const { getUserName } = useUserUtils();
   const { openModal } = useSettingsModal();
@@ -81,6 +83,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   ];
 
+  const navAdmin: NavItem[] = [
+    {
+      title: "Prompts",
+      url: "/admin/prompts",
+      icon: FileText,
+      isActive: location.pathname === "/admin/prompts",
+    }
+  ];
+
   const handleLinkClick = () => {
     if (isMobile) {
       setOpenMobile(false);
@@ -95,6 +106,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="flex flex-col">
         <div className="shrink-0">
           <NavMain items={navMain} title="Menu" />
+          {role === "admin" && (
+            <NavMain items={navAdmin} title="Admin" />
+          )}
         </div>
         <ScrollArea className="flex-1 min-h-0">
           <div className="pr-2">

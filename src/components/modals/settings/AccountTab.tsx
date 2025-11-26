@@ -1,7 +1,9 @@
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useUserUtils } from "@/hooks/auth/useUserUtils";
+import { useAuthStore } from "@/stores/authStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Moon, Sun, BadgeCheck } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
@@ -13,6 +15,7 @@ import { UserPreferencesSection } from "@/pages/platform/account/components/User
 export const AccountTab = () => {
   const { user } = useAuth();
   const { getUserInitials, getJoinDate, getUserName } = useUserUtils();
+  const { role } = useAuthStore();
   const { theme, toggleTheme } = useTheme();
   const { avatarUrl, handleImageError } = useAvatarUrl();
 
@@ -42,6 +45,11 @@ export const AccountTab = () => {
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-lg">{getUserName()}</p>
                   <BadgeCheck className="h-4 w-4 text-blue-500" />
+                  {role === "admin" && (
+                    <Badge variant="secondary">
+                      Admin
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
                 <p className="text-sm text-muted-foreground">Joined {getJoinDate()}</p>

@@ -14,7 +14,10 @@ import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import History from "./pages/platform/history/History";
 import RequestDetails from "./pages/platform/history/RequestDetails";
+import Prompts from "./pages/platform/admin/prompts/Prompts";
+import PromptDetails from "./pages/platform/admin/prompts/PromptDetails";
 import PrivateRoute from "./components/routes/PrivateRoute";
+import AdminRoute from "./components/routes/AdminRoute";
 import PublicRoute from "./components/routes/PublicRoute";
 import AuthenticatedLayout from "./components/AuthenticatedLayout";
 import Auth from "./pages/auth/Auth";
@@ -85,6 +88,26 @@ const AppContent = () => {
                 <RequestDetails />
               </AuthenticatedLayout>
             </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/admin/prompts" 
+          element={
+            <AdminRoute>
+              <AuthenticatedLayout>
+                <Prompts />
+              </AuthenticatedLayout>
+            </AdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/prompts/:id" 
+          element={
+            <AdminRoute>
+              <AuthenticatedLayout>
+                <PromptDetails />
+              </AuthenticatedLayout>
+            </AdminRoute>
           } 
         />
         <Route path="/privacy" element={<Privacy />} />

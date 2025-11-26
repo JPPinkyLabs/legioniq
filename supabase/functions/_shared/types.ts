@@ -20,6 +20,7 @@ export interface AuthResponse {
     user_metadata?: Record<string, any>;
   };
   isApproved?: boolean;
+  role?: string;
   error?: string;
 }
 
@@ -47,6 +48,25 @@ export interface SessionResponse {
     user_metadata?: Record<string, any>;
   };
   isApproved?: boolean;
+  role?: string;
+  error?: string;
+}
+
+export interface UpdatePromptRequest {
+  prompt_id: string;
+  category_id: string;
+  prompt_text: string;
+}
+
+export interface UpdatePromptResponse {
+  success: boolean;
+  data?: {
+    id: string;
+    category_id: string;
+    prompt_text: string;
+    created_at: string;
+    created_by: string | null;
+  };
   error?: string;
 }
 

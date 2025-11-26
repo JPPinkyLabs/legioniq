@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Pencil, AlertCircle, User, BadgeCheck } from "lucide-react";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useUserUtils } from "@/hooks/auth/useUserUtils";
+import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { EditNameModal } from "./components/EditNameModal";
 import { UserStats } from "./components/UserStats";
 import { UserPreferencesSection } from "./components/UserPreferencesSection";
@@ -21,6 +23,7 @@ const Account = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { getUserInitials, getJoinDate, getUserName } = useUserUtils();
+  const { role } = useAuthStore();
   const [isNameModalOpen, setIsNameModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
@@ -78,6 +81,11 @@ const Account = () => {
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-lg">{getUserName()}</p>
                   <BadgeCheck className="h-4 w-4 text-blue-500" />
+                  {role === "admin" && (
+                    <Badge variant="secondary">
+                      Admin
+                    </Badge>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
