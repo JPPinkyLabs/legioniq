@@ -1,17 +1,16 @@
 import { toast } from "sonner";
-import { type Category } from "@/types/category";
 import { useDailyLimitValidation } from "../usage/useDailyLimitValidation";
 
 interface UseScreenshotSendProps {
   screenshots: string[];
-  selectedCategory: Category | undefined;
+  selectedCategory: string | undefined;
   userMessage: string;
   currentImages: number;
   maxImages: number;
   onClearScreenshots: () => void;
   onClearMessage: () => void;
-  onAddUserMessage: (message: string, screenshots: string[], category: Category) => void;
-  analyzeScreenshot: (category: Category, base64Images: string | string[], userMessage: string | null) => Promise<{ success: boolean; data?: any; error?: string }>;
+  onAddUserMessage: (message: string, screenshots: string[], category: string) => void;
+  analyzeScreenshot: (category: string, base64Images: string | string[], userMessage: string | null) => Promise<{ success: boolean; data?: any; error?: string }>;
 }
 
 export const useScreenshotSend = ({

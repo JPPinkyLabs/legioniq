@@ -4,7 +4,6 @@ import { CategorySelector } from "@/components/features/CategorySelector";
 import { CategoryScreenshotsList } from "@/components/features/CategoryScreenshotsList";
 import { CategoryAdvicesList } from "@/components/features/CategoryAdvicesList";
 import { Button } from "@/components/ui/button";
-import { type Category } from "@/types/category";
 import { type CategoryData } from "@/hooks/other/useCategories";
 import type { CategoryAdvice } from "@/hooks/other/useCategoryAdvices";
 
@@ -17,8 +16,8 @@ interface Step1UploadProps {
   canMakeRequest: boolean;
   remainingAfterSelection: number;
   loading: boolean;
-  selectedCategory: Category | undefined;
-  onSelectCategory: (category: Category, categoryData: CategoryData) => void;
+  selectedCategoryId: string | undefined;
+  onSelectCategory: (categoryData: CategoryData) => void;
   selectedAdvice: CategoryAdvice | undefined;
   onSelectAdvice: (advice: CategoryAdvice | undefined) => void;
   onGenerate: () => void;
@@ -33,13 +32,13 @@ export const Step1Upload = ({
   canMakeRequest,
   remainingAfterSelection,
   loading,
-  selectedCategory,
+  selectedCategoryId,
   onSelectCategory,
   selectedAdvice,
   onSelectAdvice,
   onGenerate,
 }: Step1UploadProps) => {
-  const canGenerate = screenshots.length > 0 && !!selectedCategory && !!selectedAdvice && canMakeRequest && !dailyLimitExceeded;
+  const canGenerate = screenshots.length > 0 && !!selectedCategoryId && !!selectedAdvice && canMakeRequest && !dailyLimitExceeded;
 
   return (
     <div className="w-full">
@@ -55,14 +54,14 @@ export const Step1Upload = ({
         />
 
         <CategorySelector
-          selectedCategory={selectedCategory}
+          selectedCategoryId={selectedCategoryId}
           onSelectCategory={onSelectCategory}
         />
 
-        <CategoryScreenshotsList selectedCategory={selectedCategory} />
+        <CategoryScreenshotsList selectedCategoryId={selectedCategoryId} />
 
         <CategoryAdvicesList
-          selectedCategory={selectedCategory}
+          selectedCategoryId={selectedCategoryId}
           selectedAdvice={selectedAdvice}
           onSelectAdvice={onSelectAdvice}
         />

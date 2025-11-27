@@ -4,7 +4,6 @@ import { useDailyUsage } from "@/hooks/usage/useDailyUsage";
 import { useDailyLimitValidation } from "@/hooks/usage/useDailyLimitValidation";
 import { useScreenshotAnalysis2 } from "@/hooks/screenshots/useScreenshotAnalysis2";
 import { useTypingEffect } from "@/hooks/other/useTypingEffect";
-import { type Category } from "@/types/category";
 import { type CategoryData } from "@/hooks/other/useCategories";
 import type { CategoryAdvice } from "@/hooks/other/useCategoryAdvices";
 
@@ -31,7 +30,7 @@ export function useHome() {
   } = useScreenshotAnalysis2();
 
   // Selection states
-  const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(undefined);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
   const [selectedCategoryData, setSelectedCategoryData] = useState<CategoryData | undefined>(undefined);
   const [selectedAdvice, setSelectedAdvice] = useState<CategoryAdvice | undefined>(undefined);
 
@@ -110,8 +109,8 @@ export function useHome() {
     await handleFileSelectWithValidation(e.target.files, uploadScreenshot, currentCount);
   };
 
-  const handleSelectCategory = (category: Category, categoryData: CategoryData) => {
-    setSelectedCategory(category);
+  const handleSelectCategory = (categoryData: CategoryData) => {
+    setSelectedCategoryId(categoryData.id);
     setSelectedCategoryData(categoryData);
     setSelectedAdvice(undefined);
   };
@@ -146,13 +145,13 @@ export function useHome() {
     clearScreenshots();
     
     // Reset selected options (category and advice) after starting analysis
-    setSelectedCategory(undefined);
+    setSelectedCategoryId(undefined);
     setSelectedCategoryData(undefined);
     setSelectedAdvice(undefined);
   };
 
   const clearAllState = () => {
-    setSelectedCategory(undefined);
+    setSelectedCategoryId(undefined);
     setSelectedCategoryData(undefined);
     setSelectedAdvice(undefined);
     setRequestScreenshots([]);
@@ -192,7 +191,7 @@ export function useHome() {
     canAddMoreImages,
     
     // Selection
-    selectedCategory,
+    selectedCategoryId,
     selectedAdvice,
     handleSelectCategory,
     setSelectedAdvice,

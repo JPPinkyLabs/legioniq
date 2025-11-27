@@ -5,8 +5,8 @@ import { Tables } from "@/integrations/supabase/types";
 type Prompt = Tables<"prompts"> & {
   category: {
     id: string;
-    category: string;
     label: string;
+    color: string;
     display_order: number;
   };
   last_edited: string;
@@ -28,8 +28,8 @@ export const usePrompts = () => {
           *,
           category:categories!inner (
             id,
-            category,
             label,
+            color,
             display_order
           )
         `)

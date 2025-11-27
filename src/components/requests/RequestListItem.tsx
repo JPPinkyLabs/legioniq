@@ -16,12 +16,13 @@ import {
 } from "@/components/ui/item";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { getCategoryColorClasses } from "@/lib/category-colors";
 
 type Request = Tables<"requests"> & {
   category: {
     id: string;
     label: string;
-    category: string;
+    color: string;
   };
 };
 
@@ -30,27 +31,12 @@ interface RequestListItemProps {
   isLast?: boolean;
 }
 
-const categoryBadgeLabels: Record<string, string> = {
-  gameplay: "Gameplay",
-  technical: "Technical",
-  strategy: "Strategy",
-};
-
-const categoryColors: Record<string, string> = {
-  gameplay: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  technical: "bg-green-500/10 text-green-500 border-green-500/20",
-  strategy: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-};
-
-
 export const RequestListItem = ({ request, isLast = false }: RequestListItemProps) => {
   const navigate = useNavigate();
   const formattedDate = useFormattedDate(request.created_at);
 
-  const categoryEnum = request.category?.category || '';
   const categoryLabel = request.category?.label || 'Untitled';
-  const categoryBadgeLabel = categoryBadgeLabels[categoryEnum] || categoryEnum;
-  const categoryColor = categoryColors[categoryEnum] || "bg-gray-500/10 text-gray-500 border-gray-500/20";
+  const categoryColor = getCategoryColorClasses(request.category?.color);
   
   // Use category label as title
   const title = categoryLabel;
@@ -79,7 +65,7 @@ export const RequestListItem = ({ request, isLast = false }: RequestListItemProp
               variant="outline" 
               className={`${categoryColor} text-xs px-2 py-0.5`}
             >
-              {categoryBadgeLabel}
+              {categoryLabel}
             </Badge>
           </div>
           <ItemDescription>

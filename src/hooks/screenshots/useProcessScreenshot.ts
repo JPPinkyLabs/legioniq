@@ -1,9 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Category } from "@/types/category";
 
 export interface ProcessScreenshotParams {
-  category: Category;
+  category: string;
   imageBase64: string | string[];
   ocrText?: string | string[];
   userMessage?: string | null;

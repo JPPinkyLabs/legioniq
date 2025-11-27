@@ -240,11 +240,11 @@ async function checkDailyLimit(
   }
 }
 
-// Helper: Get category enum from category_id
-async function getCategoryFromId(supabaseAdmin: any, categoryId: string): Promise<string> {
+// Helper: Get category label from category_id
+async function getCategoryLabelFromId(supabaseAdmin: any, categoryId: string): Promise<string> {
   const { data: categoryData, error: categoryError } = await supabaseAdmin
     .from("categories")
-    .select("category")
+    .select("label")
     .eq("id", categoryId)
     .single();
   
@@ -252,7 +252,7 @@ async function getCategoryFromId(supabaseAdmin: any, categoryId: string): Promis
     throw new Error("Failed to fetch category: " + (categoryError?.message || "Unknown error"));
   }
   
-  return categoryData.category;
+  return categoryData.label;
 }
 
 // Helper: Get advice details from advice_id
@@ -369,7 +369,7 @@ async function buildUserPrompt(
   supabaseAdmin: any,
   ocrText: string,
   userMessage: string | null,
-  category: string,
+  categoryLabel: string,
   adviceId: string,
   userId: string,
   imageCount: number
@@ -405,9 +405,9 @@ async function buildUserPrompt(
     prompt += "Please analyze this and provide helpful recommendations.";
   } else {
     if (imageCount > 1) {
-      prompt += `I'm analyzing ${imageCount} game screenshots, but no readable text was extracted from them. Please provide general recommendations based on the ${category} category and what you might typically see in game screenshots.`;
+      prompt += `I'm analyzing ${imageCount} game screenshots, but no readable text was extracted from them. Please provide general recommendations based on the ${categoryLabel} category and what you might typically see in game screenshots.`;
     } else {
-      prompt += `I'm analyzing a game screenshot, but no readable text was extracted from it. Please provide general recommendations based on the ${category} category and what you might typically see in game screenshots.`;
+      prompt += `I'm analyzing a game screenshot, but no readable text was extracted from it. Please provide general recommendations based on the ${categoryLabel} category and what you might typically see in game screenshots.`;
     }
   }
   
@@ -730,8 +730,8 @@ serve(async (req) => {
       }
     }
 
-    // Step 6: Get category enum and prompt from database
-    const categoryEnum = await getCategoryFromId(supabaseAdmin, categoryId);
+    // Step 6: Get category label and prompt from database
+    const categoryLabel = await getCategoryLabelFromId(supabaseAdmin, categoryId);
     const systemPrompt = await getPromptFromDatabase(supabaseAdmin, categoryId);
 
     // Step 7: Upload images to storage
@@ -749,7 +749,7 @@ serve(async (req) => {
       supabaseAdmin,
       normalizedOcrText,
       null,
-      categoryEnum,
+      categoryLabel,
       adviceId,
       userId,
       imagesArray.length

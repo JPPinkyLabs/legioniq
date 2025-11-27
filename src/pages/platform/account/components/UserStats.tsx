@@ -1,5 +1,4 @@
 import { useUserStats } from "@/hooks/auth/useUserStats";
-import { useCategories } from "@/hooks/other/useCategories";
 import { useFormatNumber } from "@/hooks/formatting/useFormatNumber";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -26,7 +25,6 @@ import * as React from "react";
 
 export const UserStats = () => {
   const { stats, isLoading, error, refetch } = useUserStats();
-  const { categories } = useCategories();
   const { formatNumber } = useFormatNumber();
 
   if (isLoading) {
@@ -57,11 +55,6 @@ export const UserStats = () => {
   if (!stats) {
     return null;
   }
-
-  const getCategoryLabel = (category: string) => {
-    const categoryData = categories.find((cat) => cat.category === category);
-    return categoryData?.label || category;
-  };
 
   const metrics = [
     {
@@ -143,7 +136,7 @@ export const UserStats = () => {
                       <Badge variant="secondary" className="w-6 h-6 flex items-center justify-center p-0 text-xs">
                         {index + 1}
                       </Badge>
-                      <span className="font-medium">{getCategoryLabel(item.category)}</span>
+                      <span className="font-medium">{item.category}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-muted-foreground">

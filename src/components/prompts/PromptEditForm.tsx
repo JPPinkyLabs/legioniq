@@ -39,8 +39,8 @@ type Prompt = {
   created_by: string | null;
   category: {
     id: string;
-    category: string;
     label: string;
+    color: string;
     display_order: number;
   };
   creator: {

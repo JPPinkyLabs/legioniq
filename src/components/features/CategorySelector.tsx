@@ -1,6 +1,5 @@
 import { Trophy, Wrench, Brain, type LucideIcon } from "lucide-react";
 import { useCategories, type CategoryData } from "@/hooks/other/useCategories";
-import { type Category } from "@/types/category";
 import { cn } from "@/lib/utils";
 import { CategorySelectorSkeleton } from "@/components/skeletons/CategorySelectorSkeleton";
 
@@ -15,12 +14,7 @@ const CategoryBadge = ({
   isSelected,
   onClick,
 }: {
-  category: {
-    category: string;
-    label: string;
-    description: string;
-    icon_name: string;
-  };
+  category: CategoryData;
   isSelected: boolean;
   onClick: () => void;
 }) => {
@@ -45,12 +39,12 @@ const CategoryBadge = ({
 };
 
 interface CategorySelectorProps {
-  selectedCategory: Category | undefined;
-  onSelectCategory: (category: Category, categoryData: CategoryData) => void;
+  selectedCategoryId: string | undefined;
+  onSelectCategory: (categoryData: CategoryData) => void;
 }
 
 export const CategorySelector = ({
-  selectedCategory,
+  selectedCategoryId,
   onSelectCategory,
 }: CategorySelectorProps) => {
   const { categories, isLoading: categoriesLoading } = useCategories();
@@ -65,10 +59,10 @@ export const CategorySelector = ({
       <div className="flex flex-wrap gap-1.5 md:gap-2">
         {categories.map((category) => (
           <CategoryBadge
-            key={category.category}
+            key={category.id}
             category={category}
-            isSelected={selectedCategory === category.category}
-            onClick={() => onSelectCategory(category.category as Category, category)}
+            isSelected={selectedCategoryId === category.id}
+            onClick={() => onSelectCategory(category)}
           />
         ))}
       </div>

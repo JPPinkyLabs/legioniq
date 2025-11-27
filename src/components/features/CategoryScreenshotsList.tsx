@@ -1,26 +1,19 @@
 import { useCategoryScreenshots } from "@/hooks/other/useCategoryScreenshots";
 import { CategoryScreenshotsSkeleton } from "@/components/skeletons/CategoryScreenshotsSkeleton";
-import { useCategories } from "@/hooks/other/useCategories";
-import { type Category } from "@/types/category";
 
 interface CategoryScreenshotsListProps {
-  selectedCategory: Category | undefined;
+  selectedCategoryId: string | undefined;
 }
 
 export const CategoryScreenshotsList = ({
-  selectedCategory,
+  selectedCategoryId,
 }: CategoryScreenshotsListProps) => {
-  const { categories } = useCategories();
-  
-  const category = categories.find((c) => c.category === selectedCategory);
-  const categoryId = category?.id;
-
   const { screenshots, isLoading } = useCategoryScreenshots({
-    categoryId,
-    enabled: !!selectedCategory,
+    categoryId: selectedCategoryId,
+    enabled: !!selectedCategoryId,
   });
 
-  if (!selectedCategory) {
+  if (!selectedCategoryId) {
     return null;
   }
 

@@ -21,12 +21,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUserUtils } from "@/hooks/auth/useUserUtils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/other/use-mobile";
-
-const categoryColors: Record<string, string> = {
-  gameplay: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  technical: "bg-green-500/10 text-green-500 border-green-500/20",
-  strategy: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-};
+import { getCategoryColorClasses } from "@/lib/category-colors";
 
 const RequestDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -85,8 +80,7 @@ const RequestDetails = () => {
   const categoryTitle = adviceName 
     ? `${categoryLabel} (${adviceName})` 
     : categoryLabel;
-  const categoryEnum = request?.category?.category || '';
-  const categoryColor = request ? (categoryColors[categoryEnum] || "bg-gray-500/10 text-gray-500 border-gray-500/20") : '';
+  const categoryColor = request ? getCategoryColorClasses(request.category?.color) : '';
 
   const BackButton = () => (
     <Button

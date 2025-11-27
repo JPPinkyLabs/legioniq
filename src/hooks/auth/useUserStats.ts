@@ -50,7 +50,7 @@ export const useUserStats = () => {
         
         supabase
           .from("requests")
-          .select("category_id, category:categories!inner(category)")
+          .select("category_id, category:categories!inner(label)")
           .eq("user_id", user.id),
       ]);
 
@@ -60,9 +60,9 @@ export const useUserStats = () => {
 
       const categoryCounts: Record<string, number> = {};
       (categoryResult.data || []).forEach((req: any) => {
-        const categoryEnum = req.category?.category || '';
-        if (categoryEnum) {
-          categoryCounts[categoryEnum] = (categoryCounts[categoryEnum] || 0) + 1;
+        const categoryLabel = req.category?.label || '';
+        if (categoryLabel) {
+          categoryCounts[categoryLabel] = (categoryCounts[categoryLabel] || 0) + 1;
         }
       });
 

@@ -5,7 +5,6 @@ import { useOCR } from "../other/useOCR";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import { supabase } from "@/integrations/supabase/client";
-import type { Category } from "@/types/category";
 
 interface AnalysisResult {
   requestId: string;
@@ -31,7 +30,7 @@ export const useScreenshotAnalysis = () => {
   const { signOut } = useAuthStore();
 
   const analyzeScreenshot = async (
-    category: Category,
+    category: string,
     base64Images: string | string[],
     userMessage: string | null = null
   ) => {

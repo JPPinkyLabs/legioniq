@@ -3,12 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tables } from "@/integrations/supabase/types";
 import { useFormattedDate } from "@/hooks/formatting/useFormattedDate";
+import { getCategoryColorClasses } from "@/lib/category-colors";
 
 type Request = Tables<"requests"> & {
   category: {
     id: string;
     label: string;
-    category: string;
+    color: string;
   };
 };
 
@@ -16,26 +17,12 @@ interface RequestCardProps {
   request: Request;
 }
 
-const categoryBadgeLabels: Record<string, string> = {
-  gameplay: "Gameplay",
-  technical: "Technical",
-  strategy: "Strategy",
-};
-
-const categoryColors: Record<string, string> = {
-  gameplay: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  technical: "bg-green-500/10 text-green-500 border-green-500/20",
-  strategy: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-};
-
 export const RequestCard = ({ request }: RequestCardProps) => {
   const navigate = useNavigate();
   const formattedDate = useFormattedDate(request.created_at);
 
-  const categoryEnum = request.category?.category || '';
   const categoryLabel = request.category?.label || 'Untitled';
-  const categoryBadgeLabel = categoryBadgeLabels[categoryEnum] || categoryEnum;
-  const categoryColor = categoryColors[categoryEnum] || "bg-gray-500/10 text-gray-500 border-gray-500/20";
+  const categoryColor = getCategoryColorClasses(request.category?.color);
 
   const handleClick = () => {
     navigate(`/platform/history/requests/${request.id}`);
@@ -60,7 +47,7 @@ export const RequestCard = ({ request }: RequestCardProps) => {
             variant="outline" 
             className={`${categoryColor} text-xs px-2 py-0.5 flex-shrink-0 whitespace-nowrap`}
           >
-            {categoryBadgeLabel}
+            {categoryLabel}
           </Badge>
         </div>
       </CardHeader>

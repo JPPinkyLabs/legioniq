@@ -6,7 +6,7 @@ type Request = Tables<"requests"> & {
   category: {
     id: string;
     label: string;
-    category: string;
+    color: string;
   };
   advice: {
     id: string;
@@ -39,7 +39,7 @@ export const useRequests = () => {
           category:categories!inner (
             id,
             label,
-            category
+            color
           ),
           advice:category_advices (
             id,

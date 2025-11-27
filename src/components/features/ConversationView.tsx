@@ -6,7 +6,6 @@ import {
 } from '@/components/ai/conversation';
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useUserUtils } from "@/hooks/auth/useUserUtils";
-import { type Category } from "@/types/category";
 import { ChatMessage } from "./ChatMessage";
 import { Gamepad2, Joystick, Zap, Trophy, Target, Sparkles, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -31,7 +30,7 @@ interface ConversationViewProps {
 }
 
 export interface ConversationViewHandle {
-  addUserMessage: (content: string, screenshot: string | string[] | null, category: Category) => void;
+  addUserMessage: (content: string, screenshot: string | string[] | null, category: string) => void;
   isTypingComplete: () => boolean;
 }
 
@@ -109,16 +108,20 @@ export const ConversationView = forwardRef<ConversationViewHandle, ConversationV
     addUserMessage: (
       content: string,
       screenshot: string | string[] | null,
-      category: Category
+      category: string
     ) => {
       // Mark the last assistant message as interrupted if it exists and is not complete
       setMessages((prev) => {
+        // Find the last assistant message index (polyfill for findLastIndex)
+        let lastAssistantIndex = -1;
+        for (let i = prev.length - 1; i >= 0; i--) {
+          if (prev[i].from === 'assistant' && prev[i].id !== 'typing-indicator') {
+            lastAssistantIndex = i;
+            break;
+          }
+        }
+
         const updated = prev.map((msg, index) => {
-          // Find the last assistant message that's not a typing indicator
-          const lastAssistantIndex = prev.findLastIndex(
-            (m) => m.from === 'assistant' && m.id !== 'typing-indicator'
-          );
-          
           // If this is the last assistant message and typing is not complete, mark as interrupted
           if (index === lastAssistantIndex && !isTypingComplete) {
             return { ...msg, interrupted: true };

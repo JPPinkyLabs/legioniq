@@ -16,7 +16,7 @@ const Home = () => {
     canAddMoreImages,
     
     // Selection
-    selectedCategory,
+    selectedCategoryId,
     selectedAdvice,
     handleSelectCategory,
     setSelectedAdvice,
@@ -99,7 +99,7 @@ const Home = () => {
             canMakeRequest={canMakeRequest}
             remainingAfterSelection={remainingAfterSelection}
             loading={loading}
-            selectedCategory={selectedCategory}
+            selectedCategoryId={selectedCategoryId}
             onSelectCategory={handleSelectCategory}
             selectedAdvice={selectedAdvice}
             onSelectAdvice={setSelectedAdvice}
@@ -132,7 +132,7 @@ const Home = () => {
                   canMakeRequest={canMakeRequest}
                   remainingAfterSelection={remainingAfterSelection}
                   loading={loading}
-                  selectedCategory={selectedCategory}
+                  selectedCategoryId={selectedCategoryId}
                   onSelectCategory={handleSelectCategory}
                   selectedAdvice={selectedAdvice}
                   onSelectAdvice={setSelectedAdvice}
@@ -174,7 +174,7 @@ const Home = () => {
                     canMakeRequest={canMakeRequest}
                     remainingAfterSelection={remainingAfterSelection}
                     loading={loading}
-                    selectedCategory={selectedCategory}
+                    selectedCategoryId={selectedCategoryId}
                     onSelectCategory={handleSelectCategory}
                     selectedAdvice={selectedAdvice}
                     onSelectAdvice={setSelectedAdvice}

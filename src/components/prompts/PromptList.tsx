@@ -13,6 +13,7 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { getCategoryColorClasses } from "@/lib/category-colors";
 
 type Prompt = {
   id: string;
@@ -22,8 +23,8 @@ type Prompt = {
   created_by: string | null;
   category: {
     id: string;
-    category: string;
     label: string;
+    color: string;
     display_order: number;
   };
   last_edited: string;
@@ -34,27 +35,14 @@ interface PromptListItemProps {
   isLast?: boolean;
 }
 
-const categoryBadgeLabels: Record<string, string> = {
-  gameplay: "Gameplay",
-  technical: "Technical",
-  strategy: "Strategy",
-};
-
-const categoryColors: Record<string, string> = {
-  gameplay: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  technical: "bg-green-500/10 text-green-500 border-green-500/20",
-  strategy: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-};
-
 export const PromptListItem = ({ prompt, isLast = false }: PromptListItemProps) => {
   const navigate = useNavigate();
   const formattedDate = useFormattedDate(prompt.last_edited);
 
-  const categoryEnum = prompt.category?.category || '';
-  const categoryBadgeLabel = categoryBadgeLabels[categoryEnum] || categoryEnum;
-  const categoryColor = categoryColors[categoryEnum] || "bg-gray-500/10 text-gray-500 border-gray-500/20";
+  const categoryLabel = prompt.category?.label || 'Untitled';
+  const categoryColor = getCategoryColorClasses(prompt.category?.color);
   
-  const title = prompt.category?.label || categoryBadgeLabel;
+  const title = categoryLabel;
   const previewText = prompt.prompt_text?.substring(0, 100) || '';
 
   const handleClick = () => {
@@ -81,7 +69,7 @@ export const PromptListItem = ({ prompt, isLast = false }: PromptListItemProps) 
               variant="outline" 
               className={`${categoryColor} text-xs px-2 py-0.5`}
             >
-              {categoryBadgeLabel}
+              {categoryLabel}
             </Badge>
           </div>
           <ItemDescription>

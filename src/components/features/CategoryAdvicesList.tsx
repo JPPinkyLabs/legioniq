@@ -1,7 +1,5 @@
 import { useCategoryAdvices } from "@/hooks/other/useCategoryAdvices";
 import { CategoryAdvicesSkeleton } from "@/components/skeletons/CategoryAdvicesSkeleton";
-import { useCategories } from "@/hooks/other/useCategories";
-import { type Category } from "@/types/category";
 import { cn } from "@/lib/utils";
 import type { CategoryAdvice } from "@/hooks/other/useCategoryAdvices";
 
@@ -32,30 +30,25 @@ const AdviceBadge = ({
 };
 
 interface CategoryAdvicesListProps {
-  selectedCategory: Category | undefined;
+  selectedCategoryId: string | undefined;
   selectedAdvice: CategoryAdvice | undefined;
   onSelectAdvice: (advice: CategoryAdvice | undefined) => void;
 }
 
 export const CategoryAdvicesList = ({
-  selectedCategory,
+  selectedCategoryId,
   selectedAdvice,
   onSelectAdvice,
 }: CategoryAdvicesListProps) => {
-  const { categories } = useCategories();
-  
-  const category = categories.find((c) => c.category === selectedCategory);
-  const categoryId = category?.id;
-
   const { advices, isLoading } = useCategoryAdvices({
-    categoryId,
-    enabled: !!selectedCategory,
+    categoryId: selectedCategoryId,
+    enabled: !!selectedCategoryId,
   });
 
   return (
     <div className="space-y-2 md:space-y-3">
       <h3 className="text-sm md:text-sm font-medium">Advice Types</h3>
-      {!selectedCategory ? (
+      {!selectedCategoryId ? (
         <p className="text-xs md:text-sm text-muted-foreground">Select category first</p>
       ) : isLoading ? (
         <CategoryAdvicesSkeleton />
