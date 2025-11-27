@@ -17,6 +17,7 @@ const Home = () => {
     
     // Selection
     selectedCategoryId,
+    selectedCategoryData,
     selectedAdvice,
     handleSelectCategory,
     setSelectedAdvice,
@@ -100,6 +101,7 @@ const Home = () => {
             remainingAfterSelection={remainingAfterSelection}
             loading={loading}
             selectedCategoryId={selectedCategoryId}
+            selectedCategoryData={selectedCategoryData}
             onSelectCategory={handleSelectCategory}
             selectedAdvice={selectedAdvice}
             onSelectAdvice={setSelectedAdvice}
@@ -133,6 +135,7 @@ const Home = () => {
                   remainingAfterSelection={remainingAfterSelection}
                   loading={loading}
                   selectedCategoryId={selectedCategoryId}
+                  selectedCategoryData={selectedCategoryData}
                   onSelectCategory={handleSelectCategory}
                   selectedAdvice={selectedAdvice}
                   onSelectAdvice={setSelectedAdvice}
@@ -175,6 +178,7 @@ const Home = () => {
                     remainingAfterSelection={remainingAfterSelection}
                     loading={loading}
                     selectedCategoryId={selectedCategoryId}
+                    selectedCategoryData={selectedCategoryData}
                     onSelectCategory={handleSelectCategory}
                     selectedAdvice={selectedAdvice}
                     onSelectAdvice={setSelectedAdvice}

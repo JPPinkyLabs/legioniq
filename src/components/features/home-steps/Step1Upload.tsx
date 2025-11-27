@@ -17,6 +17,7 @@ interface Step1UploadProps {
   remainingAfterSelection: number;
   loading: boolean;
   selectedCategoryId: string | undefined;
+  selectedCategoryData: CategoryData | undefined;
   onSelectCategory: (categoryData: CategoryData) => void;
   selectedAdvice: CategoryAdvice | undefined;
   onSelectAdvice: (advice: CategoryAdvice | undefined) => void;
@@ -33,6 +34,7 @@ export const Step1Upload = ({
   remainingAfterSelection,
   loading,
   selectedCategoryId,
+  selectedCategoryData,
   onSelectCategory,
   selectedAdvice,
   onSelectAdvice,
@@ -57,6 +59,12 @@ export const Step1Upload = ({
           selectedCategoryId={selectedCategoryId}
           onSelectCategory={onSelectCategory}
         />
+
+        {/* {selectedCategoryData && (
+          <p className="text-xs md:text-sm text-muted-foreground">
+            {selectedCategoryData.description}
+          </p>
+        )} */}
 
         <CategoryScreenshotsList selectedCategoryId={selectedCategoryId} />
 

@@ -192,6 +192,7 @@ export function useHome() {
     
     // Selection
     selectedCategoryId,
+    selectedCategoryData,
     selectedAdvice,
     handleSelectCategory,
     setSelectedAdvice,
