@@ -4,24 +4,20 @@ import { useDailyLimitValidation } from "../usage/useDailyLimitValidation";
 interface UseScreenshotSendProps {
   screenshots: string[];
   selectedCategory: string | undefined;
-  userMessage: string;
   currentImages: number;
   maxImages: number;
   onClearScreenshots: () => void;
-  onClearMessage: () => void;
-  onAddUserMessage: (message: string, screenshots: string[], category: string) => void;
-  analyzeScreenshot: (category: string, base64Images: string | string[], userMessage: string | null) => Promise<{ success: boolean; data?: any; error?: string }>;
+  onAddScreenshotEntry: (screenshots: string[], category: string) => void;
+  analyzeScreenshot: (category: string, base64Images: string | string[]) => Promise<{ success: boolean; data?: any; error?: string }>;
 }
 
 export const useScreenshotSend = ({
   screenshots,
   selectedCategory,
-  userMessage,
   currentImages,
   maxImages,
   onClearScreenshots,
-  onClearMessage,
-  onAddUserMessage,
+  onAddScreenshotEntry,
   analyzeScreenshot,
 }: UseScreenshotSendProps) => {
   const { validateAndHandleSend } = useDailyLimitValidation({
@@ -52,20 +48,16 @@ export const useScreenshotSend = ({
       return;
     }
 
-    // Prepare message
-    const messageToSend = userMessage.trim().length > 0 ? userMessage.trim() : null;
-
-    // Add user message to conversation view
-    onAddUserMessage(messageToSend || '', screenshots, selectedCategory);
+    // Add screenshot entry to conversation view
+    onAddScreenshotEntry(screenshots, selectedCategory);
 
     // Clear state
-    onClearMessage();
     onClearScreenshots();
 
     // Analyze screenshot
     // analyzeScreenshot handles errors internally and sets the error state
     // We don't need to catch here as the hook manages its own error state
-    const result = await analyzeScreenshot(selectedCategory, screenshots, messageToSend);
+    const result = await analyzeScreenshot(selectedCategory, screenshots);
 
     if (!result.success) {
       // Error is already handled in the hook and displayed via toast

@@ -30,7 +30,7 @@ interface ConversationViewProps {
 }
 
 export interface ConversationViewHandle {
-  addUserMessage: (content: string, screenshot: string | string[] | null, category: string) => void;
+  addScreenshotEntry: (screenshot: string | string[] | null, category: string) => void;
   isTypingComplete: () => boolean;
 }
 
@@ -105,8 +105,7 @@ export const ConversationView = forwardRef<ConversationViewHandle, ConversationV
   }, [error]);
 
   useImperativeHandle(ref, () => ({
-    addUserMessage: (
-      content: string,
+    addScreenshotEntry: (
       screenshot: string | string[] | null,
       category: string
     ) => {
@@ -129,10 +128,10 @@ export const ConversationView = forwardRef<ConversationViewHandle, ConversationV
           return msg;
         });
 
-        const userMsg: ConversationMessage = {
+        const userEntry: ConversationMessage = {
           id: generateMessageId(),
           from: 'user',
-          content: content || `[Screenshot uploaded - ${category}]`,
+          content: `[Screenshot uploaded - ${category}]`,
           timestamp: new Date(),
           screenshot: screenshot,
         };
@@ -144,7 +143,7 @@ export const ConversationView = forwardRef<ConversationViewHandle, ConversationV
           timestamp: new Date(),
         };
 
-        return [...updated, userMsg, typingIndicator];
+        return [...updated, userEntry, typingIndicator];
       });
       
       pendingRequestIdRef.current = 'pending';

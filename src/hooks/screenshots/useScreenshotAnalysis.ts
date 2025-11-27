@@ -31,8 +31,7 @@ export const useScreenshotAnalysis = () => {
 
   const analyzeScreenshot = async (
     category: string,
-    base64Images: string | string[],
-    userMessage: string | null = null
+    base64Images: string | string[]
   ) => {
     setLoading(true);
     setError(null);
@@ -102,7 +101,6 @@ export const useScreenshotAnalysis = () => {
           category,
           imageBase64: imagesArray,
           ocrText: ocrTexts,
-          userMessage: userMessage,
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`,

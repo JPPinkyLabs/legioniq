@@ -60,17 +60,9 @@ function normalizeOcrText(ocrText?: string | string[]): string {
   return "";
 }
 
-// Helper: Normalize user message
-function normalizeUserMessage(userMessage?: string | null): string | null {
-  if (userMessage && typeof userMessage === "string" && userMessage.trim().length > 0) {
-    return userMessage.trim();
-  }
-  return null;
-}
-
 // Helper: Calculate text hash
-async function calculateTextHash(ocrText: string, userMessage: string | null): Promise<string> {
-  const normalizedText = `${ocrText || ""}|${userMessage || ""}`;
+async function calculateTextHash(ocrText: string): Promise<string> {
+  const normalizedText = ocrText || "";
   return await calculateHash(normalizedText);
 }
 
@@ -368,7 +360,6 @@ async function getPromptFromDatabase(supabaseAdmin: any, categoryId: string): Pr
 async function buildUserPrompt(
   supabaseAdmin: any,
   ocrText: string,
-  userMessage: string | null,
   categoryLabel: string,
   adviceId: string,
   userId: string,
@@ -390,10 +381,6 @@ async function buildUserPrompt(
   // Add user preferences if available
   if (preferencesText) {
     prompt += preferencesText + "\n";
-  }
-  
-  if (userMessage) {
-    prompt += `User question/request: ${userMessage}\n\n`;
   }
   
   if (ocrText && ocrText.trim().length > 0) {
@@ -656,7 +643,7 @@ serve(async (req) => {
     }
 
     // Step 4: Generate cache components
-    const textHash = await calculateTextHash(normalizedOcrText, null);
+    const textHash = await calculateTextHash(normalizedOcrText);
     const imagesKey = await calculateImagesKey(imagesArray);
     const openaiModel = Deno.env.get("OPENAI_MODEL") || "gpt-4o";
     const cacheKey = await generateCacheKey(categoryId, adviceId, textHash, imagesKey, openaiModel);
@@ -748,7 +735,6 @@ serve(async (req) => {
     const userPrompt = await buildUserPrompt(
       supabaseAdmin,
       normalizedOcrText,
-      null,
       categoryLabel,
       adviceId,
       userId,

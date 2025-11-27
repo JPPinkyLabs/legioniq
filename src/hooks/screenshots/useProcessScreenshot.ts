@@ -5,7 +5,6 @@ export interface ProcessScreenshotParams {
   category: string;
   imageBase64: string | string[];
   ocrText?: string | string[];
-  userMessage?: string | null;
 }
 
 export interface ProcessScreenshotResult {
@@ -35,7 +34,6 @@ export const useProcessScreenshot = () => {
           category: params.category,
           imageBase64: params.imageBase64,
           ocrText: params.ocrText,
-          userMessage: params.userMessage,
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
