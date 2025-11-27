@@ -599,10 +599,10 @@ serve(async (req) => {
       );
     }
 
-    // Check if user is approved
+    // Check if user is approved and get role
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .select("is_approved")
+      .select("is_approved, role")
       .eq("id", user.id)
       .single();
 
@@ -617,6 +617,7 @@ serve(async (req) => {
     }
 
     const userId = user.id;
+    const isAdmin = profile.role === "admin";
     const body = await req.json();
 
     // Step 1: Validate input
@@ -629,48 +630,12 @@ serve(async (req) => {
     const adviceId = body.advice_id;
 
     // Step 3: Check daily limit BEFORE cache check (prevents bypass via cache)
-    const maxDailyImages =
-      parseInt(Deno.env.get("DAILY_LIMIT_MAX_IMAGES") || String(DEFAULT_MAX_DAILY_IMAGES), 10) ||
-      DEFAULT_MAX_DAILY_IMAGES;
+    // Skip daily limit check for admin users
+    if (!isAdmin) {
+      const maxDailyImages =
+        parseInt(Deno.env.get("DAILY_LIMIT_MAX_IMAGES") || String(DEFAULT_MAX_DAILY_IMAGES), 10) ||
+        DEFAULT_MAX_DAILY_IMAGES;
 
-    try {
-      await checkDailyLimit(supabaseAdmin, userId, imagesArray.length, maxDailyImages);
-    } catch (error: any) {
-      if (error?.error === "Daily limit exceeded") {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: error.error,
-            message: error.message,
-            retryAfter: error.retryAfter,
-            currentCount: error.currentCount,
-            maxImages: error.maxImages,
-            remainingImages: error.remainingImages,
-          }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-      throw error;
-    }
-
-    // Step 4: Generate cache components
-    const textHash = await calculateTextHash(normalizedOcrText);
-    const imagesKey = await calculateImagesKey(imagesArray);
-    const openaiModel = Deno.env.get("OPENAI_MODEL") || "gpt-4o";
-    const cacheKey = await generateCacheKey(categoryId, adviceId, textHash, imagesKey, openaiModel);
-
-    // Step 5: Check cache
-    const cachedData = await checkCache(supabaseAdmin, cacheKey);
-
-    if (cachedData) {
-      const cachedResult = cachedData.result;
-      const cachedModelResponse = cachedResult.model_response || "";
-      const cachedOcrText = cachedResult.ocr_text || normalizedOcrText;
-
-      // Check daily limit again for cache hits (defense in depth)
       try {
         await checkDailyLimit(supabaseAdmin, userId, imagesArray.length, maxDailyImages);
       } catch (error: any) {
@@ -692,6 +657,52 @@ serve(async (req) => {
           );
         }
         throw error;
+      }
+    }
+
+    // Step 4: Generate cache components
+    const textHash = await calculateTextHash(normalizedOcrText);
+    const imagesKey = await calculateImagesKey(imagesArray);
+    const openaiModel = Deno.env.get("OPENAI_MODEL") || "gpt-4o";
+    const cacheKey = await generateCacheKey(categoryId, adviceId, textHash, imagesKey, openaiModel);
+
+    // Step 5: Check cache
+    const cachedData = await checkCache(supabaseAdmin, cacheKey);
+
+    if (cachedData) {
+      const cachedResult = cachedData.result;
+      const cachedModelResponse = cachedResult.model_response || "";
+      const cachedOcrText = cachedResult.ocr_text || normalizedOcrText;
+
+      // Check daily limit again for cache hits (defense in depth)
+      // Skip for admin users
+      if (!isAdmin) {
+        const maxDailyImages =
+          parseInt(Deno.env.get("DAILY_LIMIT_MAX_IMAGES") || String(DEFAULT_MAX_DAILY_IMAGES), 10) ||
+          DEFAULT_MAX_DAILY_IMAGES;
+
+        try {
+          await checkDailyLimit(supabaseAdmin, userId, imagesArray.length, maxDailyImages);
+        } catch (error: any) {
+          if (error?.error === "Daily limit exceeded") {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: error.error,
+                message: error.message,
+                retryAfter: error.retryAfter,
+                currentCount: error.currentCount,
+                maxImages: error.maxImages,
+                remainingImages: error.remainingImages,
+              }),
+              {
+                status: 429,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              }
+            );
+          }
+          throw error;
+        }
       }
 
       const requestId = generateRequestId();

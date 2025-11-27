@@ -1,17 +1,50 @@
-import { useDailyUsage } from "./useDailyUsage";
 import { toast } from "sonner";
 
 interface UseDailyLimitValidationProps {
   screenshots: string[];
   currentImages: number;
   maxImages: number;
+  isUnlimited?: boolean;
 }
 
 export const useDailyLimitValidation = ({
   screenshots,
   currentImages,
   maxImages,
+  isUnlimited = false,
 }: UseDailyLimitValidationProps) => {
+  // For unlimited users, all validations pass
+  if (isUnlimited) {
+    return {
+      remainingImages: Infinity,
+      remainingAfterSelection: Infinity,
+      dailyLimitExceeded: false,
+      canMakeRequest: true,
+      validateFileAddition: () => ({
+        isValid: true,
+        wouldExceed: false,
+        maxCanAdd: Infinity,
+        message: null,
+      }),
+      validateBeforeSend: () => ({
+        isValid: true,
+        wouldExceed: false,
+        message: null,
+      }),
+      handleFileSelectWithValidation: async (
+        files: FileList | null,
+        onFileUpload: (file: File) => Promise<{ success: boolean; base64?: string; error?: string }>
+      ) => {
+        if (!files || files.length === 0) return;
+        const fileArray = Array.from(files);
+        for (const file of fileArray) {
+          await onFileUpload(file);
+        }
+      },
+      validateAndHandleSend: () => true,
+    };
+  }
+
   const remainingImages = maxImages - currentImages;
   const totalAfterSelection = currentImages + screenshots.length;
   const dailyLimitExceeded = totalAfterSelection > maxImages;
@@ -150,4 +183,3 @@ export const useDailyLimitValidation = ({
     validateAndHandleSend,
   };
 };
-

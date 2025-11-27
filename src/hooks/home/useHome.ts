@@ -47,7 +47,7 @@ export function useHome() {
   const [isMobile, setIsMobile] = useState(false);
 
   // Daily usage
-  const { canMakeRequest, currentImages, maxImages } = useDailyUsage();
+  const { canMakeRequest, currentImages, maxImages, isUnlimited } = useDailyUsage();
 
   const {
     remainingAfterSelection,
@@ -58,6 +58,7 @@ export function useHome() {
     screenshots,
     currentImages,
     maxImages,
+    isUnlimited,
   });
 
   // Category title text for typing effect

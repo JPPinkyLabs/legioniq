@@ -6,6 +6,13 @@ export interface DailyUsageStatus {
   current_count: number;
   max_images: number;
   reset_at: string;
+  is_unlimited: boolean;
+}
+
+interface DailyUsageResponse {
+  success: boolean;
+  data?: DailyUsageStatus;
+  error?: string;
 }
 
 export const useDailyUsage = () => {
@@ -16,30 +23,38 @@ export const useDailyUsage = () => {
   } = useQuery<DailyUsageStatus>({
     queryKey: ["dailyUsage"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("User not authenticated");
 
-      const { data, error } = await (supabase.rpc as any)("get_daily_usage_status", {
-        p_user_id: user.id,
-        p_max_images: 15,
-      });
+      const { data, error } = await supabase.functions.invoke<DailyUsageResponse>(
+        "get-daily-usage",
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
 
       if (error) throw error;
-      if (!data) throw new Error("No data returned from function");
+      if (!data?.success || !data?.data) {
+        throw new Error(data?.error || "No data returned from function");
+      }
 
-      return data as DailyUsageStatus;
+      return data.data;
     },
     refetchInterval: 30000, // Refetch every 30 seconds
     staleTime: 0, // Always consider stale for revalidation
   });
 
+  const isUnlimited = dailyUsage?.is_unlimited ?? false;
+
   return {
     canMakeRequest: dailyUsage?.can_make_request ?? true,
     currentImages: dailyUsage?.current_count ?? 0,
-    maxImages: dailyUsage?.max_images ?? 15,
+    maxImages: dailyUsage?.max_images ?? 0,
     resetAt: dailyUsage?.reset_at ? new Date(dailyUsage.reset_at) : null,
+    isUnlimited,
     isLoading,
     error,
   };
 };
-

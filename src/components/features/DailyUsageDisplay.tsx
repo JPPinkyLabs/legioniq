@@ -3,7 +3,7 @@ import { useFormatResetTime } from "@/hooks/formatting/useFormatResetTime";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { DailyUsageDisplaySkeleton } from "@/components/skeletons/DailyUsageDisplaySkeleton";
-import { AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";
+import { AlertCircle, CheckCircle2, ExternalLink, Infinity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +14,7 @@ interface DailyUsageDisplayProps {
 }
 
 export const DailyUsageDisplay = ({ compact = false, className }: DailyUsageDisplayProps) => {
-  const { canMakeRequest, currentImages, maxImages, resetAt, isLoading } = useDailyUsage();
+  const { canMakeRequest, currentImages, maxImages, resetAt, isUnlimited, isLoading } = useDailyUsage();
   const { state, isMobile, setOpenMobile } = useSidebar();
   const { formatResetTime } = useFormatResetTime();
   const navigate = useNavigate();
@@ -29,11 +29,12 @@ export const DailyUsageDisplay = ({ compact = false, className }: DailyUsageDisp
     return <DailyUsageDisplaySkeleton compact={compact} className={className} />;
   }
 
-  const percentage = (currentImages / maxImages) * 100;
-  const isNearLimit = percentage >= 80;
-  const isExceeded = !canMakeRequest;
+  const percentage = isUnlimited ? 0 : (currentImages / maxImages) * 100;
+  const isNearLimit = !isUnlimited && percentage >= 80;
+  const isExceeded = !isUnlimited && !canMakeRequest;
 
   const getStatusColor = () => {
+    if (isUnlimited) return "default";
     if (isExceeded) return "destructive";
     if (isNearLimit) return "secondary";
     return "default";
@@ -61,15 +62,26 @@ export const DailyUsageDisplay = ({ compact = false, className }: DailyUsageDisp
             <span className="text-xs text-muted-foreground">Daily Usage</span>
             <ExternalLink className="h-3 w-3 text-muted-foreground" />
           </div>
-          <Badge variant={getStatusColor()} className="text-xs">
-            {currentImages} / {maxImages}
-          </Badge>
+          {isUnlimited ? (
+            <Badge variant="default" className="text-xs">
+              <Infinity className="h-3 w-3 mr-1 badge-icon" />
+              Unlimited
+            </Badge>
+          ) : (
+            <Badge variant={getStatusColor()} className="text-xs">
+              {currentImages} / {maxImages}
+            </Badge>
+          )}
         </div>
-        <Progress value={percentage} className="h-1.5" />
-        {isExceeded && resetAt && (
+        {!isUnlimited && <Progress value={percentage} className="h-1.5" />}
+        {!isUnlimited && isExceeded && resetAt && (
           <p className="text-xs text-muted-foreground">Resets in {formatResetTime(resetAt)}</p>
         )}
-        <p className="text-xs text-muted-foreground">{maxImages - currentImages} images remaining today</p> 
+        {isUnlimited ? (
+          <p className="text-xs text-muted-foreground">Unlimited requests available</p>
+        ) : (
+          <p className="text-xs text-muted-foreground">{maxImages - currentImages} images remaining today</p>
+        )}
       </div>
     );
   }
@@ -84,28 +96,43 @@ export const DailyUsageDisplay = ({ compact = false, className }: DailyUsageDisp
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          {isExceeded ? (
+          {isUnlimited ? (
+            <Infinity className="h-4 w-4 text-primary" />
+          ) : isExceeded ? (
             <AlertCircle className="h-4 w-4 text-destructive" />
           ) : (
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           )}
           <span className="text-sm font-medium">Daily Usage Limit</span>
         </div>
-        <Badge variant={getStatusColor()}>
-          {currentImages} / {maxImages}
-        </Badge>
+        {isUnlimited ? (
+          <Badge variant="default">
+            <Infinity className="h-3 w-3 mr-1 badge-icon" />
+            Unlimited
+          </Badge>
+        ) : (
+          <Badge variant={getStatusColor()}>
+            {currentImages} / {maxImages}
+          </Badge>
+        )}
       </div>
       
-      <Progress 
-        value={percentage} 
-        className={cn(
-          "h-2",
-          isExceeded && "bg-destructive/20 [&>div]:bg-destructive",
-          isNearLimit && !isExceeded && "bg-yellow-500/20 [&>div]:bg-yellow-500"
-        )}
-      />
+      {!isUnlimited && (
+        <Progress 
+          value={percentage} 
+          className={cn(
+            "h-2",
+            isExceeded && "bg-destructive/20 [&>div]:bg-destructive",
+            isNearLimit && !isExceeded && "bg-yellow-500/20 [&>div]:bg-yellow-500"
+          )}
+        />
+      )}
       
-      {isExceeded ? (
+      {isUnlimited ? (
+        <p className="text-xs text-muted-foreground">
+          Unlimited requests available (Admin)
+        </p>
+      ) : isExceeded ? (
         <div className="flex flex-col gap-1">
           <p className="text-sm text-destructive font-medium">
             Daily limit reached
@@ -124,4 +151,3 @@ export const DailyUsageDisplay = ({ compact = false, className }: DailyUsageDisp
     </div>
   );
 };
-

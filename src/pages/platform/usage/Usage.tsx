@@ -11,6 +11,7 @@ import {
   Calendar,
   Clock,
   ArrowLeft,
+  Infinity,
 } from "lucide-react";
 import { UsageSkeleton } from "@/components/skeletons/UsageSkeleton";
 import { ErrorEmpty } from "@/components/ErrorEmpty";
@@ -19,7 +20,7 @@ import { UserStats } from "@/pages/platform/account/components/UserStats";
 
 const Usage = () => {
   const navigate = useNavigate();
-  const { currentImages, maxImages, resetAt, isLoading: isLoadingDaily, error: dailyError } = useDailyUsage();
+  const { currentImages, maxImages, resetAt, isUnlimited, isLoading: isLoadingDaily, error: dailyError } = useDailyUsage();
   const { formatResetTime } = useFormatResetTime();
 
   const isLoading = isLoadingDaily;
@@ -84,44 +85,61 @@ const Usage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {(() => {
-                  const dailyPercentage = maxImages > 0 ? (currentImages / maxImages) * 100 : 0;
-                  const isNearLimit = dailyPercentage >= 80;
-                  const isExceeded = dailyPercentage >= 100;
-
-                  return (
-                    <div className="space-y-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge 
-                            variant={isExceeded ? "destructive" : isNearLimit ? "secondary" : "default"}
-                            className="text-sm"
-                          >
-                            {currentImages} / {maxImages}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground whitespace-nowrap">images today</span>
-                        </div>
-                        {resetAt && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
-                            <Clock className="h-4 w-4 flex-shrink-0" />
-                            <span className="whitespace-nowrap">Resets in {formatResetTime(resetAt)}</span>
-                          </div>
-                        )}
+                {isUnlimited ? (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="default" className="text-sm">
+                          <Infinity className="h-3 w-3 mr-1 badge-icon" />
+                          Unlimited
+                        </Badge>
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">images today</span>
                       </div>
-                      <Progress 
-                        value={dailyPercentage} 
-                        className={cn(
-                          "h-3",
-                          isExceeded && "bg-destructive/20 [&>div]:bg-destructive",
-                          isNearLimit && !isExceeded && "bg-yellow-500/20 [&>div]:bg-yellow-500"
-                        )}
-                      />
-                      <p className="text-sm text-muted-foreground">
-                        {maxImages - currentImages} images remaining today
-                      </p>
                     </div>
-                  );
-                })()}
+                    <p className="text-sm text-muted-foreground">
+                      Unlimited requests available (Admin)
+                    </p>
+                  </div>
+                ) : (
+                  (() => {
+                    const dailyPercentage = maxImages > 0 ? (currentImages / maxImages) * 100 : 0;
+                    const isNearLimit = dailyPercentage >= 80;
+                    const isExceeded = dailyPercentage >= 100;
+
+                    return (
+                      <div className="space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge 
+                              variant={isExceeded ? "destructive" : isNearLimit ? "secondary" : "default"}
+                              className="text-sm"
+                            >
+                              {currentImages} / {maxImages}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">images today</span>
+                          </div>
+                          {resetAt && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+                              <Clock className="h-4 w-4 flex-shrink-0" />
+                              <span className="whitespace-nowrap">Resets in {formatResetTime(resetAt)}</span>
+                            </div>
+                          )}
+                        </div>
+                        <Progress 
+                          value={dailyPercentage} 
+                          className={cn(
+                            "h-3",
+                            isExceeded && "bg-destructive/20 [&>div]:bg-destructive",
+                            isNearLimit && !isExceeded && "bg-yellow-500/20 [&>div]:bg-yellow-500"
+                          )}
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          {maxImages - currentImages} images remaining today
+                        </p>
+                      </div>
+                    );
+                  })()
+                )}
               </CardContent>
             </Card>
 

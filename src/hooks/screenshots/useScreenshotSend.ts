@@ -6,6 +6,7 @@ interface UseScreenshotSendProps {
   selectedCategory: string | undefined;
   currentImages: number;
   maxImages: number;
+  isUnlimited?: boolean;
   onClearScreenshots: () => void;
   onAddScreenshotEntry: (screenshots: string[], category: string) => void;
   analyzeScreenshot: (category: string, base64Images: string | string[]) => Promise<{ success: boolean; data?: any; error?: string }>;
@@ -16,6 +17,7 @@ export const useScreenshotSend = ({
   selectedCategory,
   currentImages,
   maxImages,
+  isUnlimited = false,
   onClearScreenshots,
   onAddScreenshotEntry,
   analyzeScreenshot,
@@ -24,6 +26,7 @@ export const useScreenshotSend = ({
     screenshots,
     currentImages,
     maxImages,
+    isUnlimited,
   });
 
   const handleSend = async () => {

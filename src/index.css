@@ -150,16 +150,17 @@ Geist typography from Vercel theme
 }
 
 /* Golden icons in sidebar and header for dark mode */
-.dark [data-sidebar="sidebar"] svg:not([class*="text-white"]),
-.dark [data-sidebar="trigger"] svg:not([class*="text-white"]),
-.dark header svg:not([class*="text-white"]),
-.dark [data-sidebar="sidebar"] [class*="lucide"]:not([class*="text-white"]) {
+.dark [data-sidebar="sidebar"] svg:not([class*="text-white"]):not(.badge-icon),
+.dark [data-sidebar="trigger"] svg:not([class*="text-white"]):not(.badge-icon),
+.dark header svg:not([class*="text-white"]):not(.badge-icon),
+.dark [data-sidebar="sidebar"] [class*="lucide"]:not([class*="text-white"]):not(.badge-icon) {
   color: hsl(45, 75%, 55%) !important;
 }
 
-/* Ensure white icons in primary background stay white in dark mode */
-.dark [data-sidebar="sidebar"] .bg-primary svg {
-  color: white !important;
+/* Ensure icons in badges use inherit color in dark mode */
+.dark [data-sidebar="sidebar"] .bg-primary svg,
+.dark [data-sidebar="sidebar"] [data-slot="badge"] svg {
+  color: inherit !important;
 }
 
 /* Sidebar background matches header in dark mode */
