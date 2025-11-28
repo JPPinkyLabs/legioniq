@@ -225,6 +225,7 @@ export function useHome() {
     dailyLimitExceeded,
     canMakeRequest,
     remainingAfterSelection,
+    maxImages,
     
     // Category Info (for conditional rendering)
     requestCategoryData,

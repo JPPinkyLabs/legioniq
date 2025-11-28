@@ -15,6 +15,7 @@ interface Step1UploadProps {
   dailyLimitExceeded: boolean;
   canMakeRequest: boolean;
   remainingAfterSelection: number;
+  maxImages: number;
   loading: boolean;
   selectedCategoryId: string | undefined;
   selectedCategoryData: CategoryData | undefined;
@@ -32,6 +33,7 @@ export const Step1Upload = ({
   dailyLimitExceeded,
   canMakeRequest,
   remainingAfterSelection,
+  maxImages,
   loading,
   selectedCategoryId,
   selectedCategoryData,
@@ -52,6 +54,7 @@ export const Step1Upload = ({
           canAddMoreImages={canAddMoreImages}
           dailyLimitExceeded={dailyLimitExceeded}
           remainingAfterSelection={remainingAfterSelection}
+          maxImages={maxImages}
           loading={loading}
         />
 
@@ -68,11 +71,13 @@ export const Step1Upload = ({
 
         <CategoryScreenshotsList selectedCategoryId={selectedCategoryId} />
 
-        <CategoryAdvicesList
-          selectedCategoryId={selectedCategoryId}
-          selectedAdvice={selectedAdvice}
-          onSelectAdvice={onSelectAdvice}
-        />
+        {selectedCategoryId && (
+          <CategoryAdvicesList
+            selectedCategoryId={selectedCategoryId}
+            selectedAdvice={selectedAdvice}
+            onSelectAdvice={onSelectAdvice}
+          />
+        )}
 
         {dailyLimitExceeded && (
           <div className="flex items-center gap-2 p-2 md:p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-xs md:text-sm">

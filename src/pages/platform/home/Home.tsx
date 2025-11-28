@@ -48,6 +48,7 @@ const Home = () => {
     dailyLimitExceeded,
     canMakeRequest,
     remainingAfterSelection,
+    maxImages,
     
     // Computed
     loading,
@@ -99,6 +100,7 @@ const Home = () => {
             dailyLimitExceeded={dailyLimitExceeded}
             canMakeRequest={canMakeRequest}
             remainingAfterSelection={remainingAfterSelection}
+            maxImages={maxImages}
             loading={loading}
             selectedCategoryId={selectedCategoryId}
             selectedCategoryData={selectedCategoryData}
@@ -133,6 +135,7 @@ const Home = () => {
                   dailyLimitExceeded={dailyLimitExceeded}
                   canMakeRequest={canMakeRequest}
                   remainingAfterSelection={remainingAfterSelection}
+                  maxImages={maxImages}
                   loading={loading}
                   selectedCategoryId={selectedCategoryId}
                   selectedCategoryData={selectedCategoryData}
@@ -176,6 +179,7 @@ const Home = () => {
                     dailyLimitExceeded={dailyLimitExceeded}
                     canMakeRequest={canMakeRequest}
                     remainingAfterSelection={remainingAfterSelection}
+                    maxImages={maxImages}
                     loading={loading}
                     selectedCategoryId={selectedCategoryId}
                     selectedCategoryData={selectedCategoryData}

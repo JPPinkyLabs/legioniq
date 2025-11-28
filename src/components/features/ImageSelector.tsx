@@ -60,7 +60,9 @@ interface ImageSelectorProps {
   canAddMoreImages: boolean;
   dailyLimitExceeded: boolean;
   remainingAfterSelection: number;
+  maxImages: number;
   loading?: boolean;
+  dailyUsageLoading?: boolean;
 }
 
 export const ImageSelector = ({
@@ -70,8 +72,11 @@ export const ImageSelector = ({
   canAddMoreImages,
   dailyLimitExceeded,
   remainingAfterSelection,
+  maxImages,
   loading = false,
 }: ImageSelectorProps) => {
+  // Only show limit message when daily usage data is loaded (maxImages > 0)
+  const isDailyUsageReady = maxImages > 0;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadClick = () => {
@@ -139,9 +144,9 @@ export const ImageSelector = ({
         disabled={!canAddMoreImages || loading}
       />
 
-      {!canAddMoreImages && screenshots.length < MAX_IMAGES && (
+      {!canAddMoreImages && screenshots.length < MAX_IMAGES && isDailyUsageReady && (
         <p className="text-xs md:text-sm text-muted-foreground">
-          {dailyLimitExceeded
+          {dailyLimitExceeded || remainingAfterSelection === 0
             ? "Daily image limit reached"
             : `You can add ${remainingAfterSelection} more image${remainingAfterSelection !== 1 ? "s" : ""} today`}
         </p>
