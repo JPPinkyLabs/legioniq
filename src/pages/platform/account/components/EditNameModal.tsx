@@ -90,7 +90,7 @@ export const EditNameModal = ({ isOpen, onClose }: EditNameModalProps) => {
       
       onClose();
     } catch (error: any) {
-      toast.error("Error", {
+      toast.error("Name update failed", {
         description: error.message || "Failed to update name",
       });
     } finally {

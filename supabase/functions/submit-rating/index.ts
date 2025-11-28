@@ -3,6 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,34 +13,31 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authorization header required" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Rating failed",
+        "Authentication required."
       );
     }
 
     const { requestId, rating } = await req.json();
 
     if (!requestId || typeof requestId !== "string") {
-      return new Response(
-        JSON.stringify({ success: false, error: "requestId is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "VALIDATION_ERROR",
+        "Rating failed",
+        "Request ID is required."
       );
     }
 
     if (!rating || typeof rating !== "number" || rating < 1 || rating > 5) {
-      return new Response(
-        JSON.stringify({ success: false, error: "rating must be a number between 1 and 5" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "VALIDATION_ERROR",
+        "Rating failed",
+        "Rating must be a number between 1 and 5."
       );
     }
 
@@ -50,29 +48,27 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: userError?.message || "Invalid authentication" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "INVALID_TOKEN",
+        "Rating failed",
+        userError?.message || "Invalid or expired session."
       );
     }
 
     // Check if user is approved
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("is_approved")
       .eq("id", user.id)
       .single();
 
-    if (profileError || !profile || !profile.is_approved) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Account pending approval" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+    if (!profile || !profile.is_approved) {
+      return errorResponse(
+        403,
+        "NOT_APPROVED",
+        "Rating failed",
+        "Your account is pending approval."
       );
     }
 
@@ -85,38 +81,34 @@ serve(async (req) => {
       .single();
 
     if (fetchError) {
-      return new Response(
-        JSON.stringify({ success: false, error: fetchError.message || "Failed to fetch request" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "FETCH_FAILED",
+        "Rating failed",
+        fetchError.message || "Failed to fetch request."
       );
     }
 
     if (!existingRequest) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Request not found" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        404,
+        "NOT_FOUND",
+        "Rating failed",
+        "Request not found."
       );
     }
 
     // Prevent updating if rating already exists
     if (existingRequest.rating !== null && existingRequest.rating !== undefined) {
-      return new Response(
-        JSON.stringify({ success: false, error: "This request already has a rating" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "ALREADY_RATED",
+        "Rating failed",
+        "This request already has a rating."
       );
     }
 
     // Update the request with the rating
-    // Ensure user can only rate their own requests
     const { data, error } = await supabaseAdmin
       .from("requests")
       .update({ rating })
@@ -126,40 +118,30 @@ serve(async (req) => {
       .single();
 
     if (error) {
-      return new Response(
-        JSON.stringify({ success: false, error: error.message || "Failed to update rating" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "UPDATE_FAILED",
+        "Rating failed",
+        error.message || "Failed to update rating."
       );
     }
 
     if (!data) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to update rating: No data returned" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "UPDATE_FAILED",
+        "Rating failed",
+        "Failed to update rating: No data returned."
       );
     }
 
-    return new Response(
-      JSON.stringify({ success: true, data }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return successResponse(data);
   } catch (error) {
-    return new Response(
-      JSON.stringify({ success: false, error: error?.message || "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Rating failed",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-

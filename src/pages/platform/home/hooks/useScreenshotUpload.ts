@@ -52,7 +52,7 @@ export const useScreenshotUpload = () => {
       
       return { success: true, base64 };
     } catch (error: any) {
-      toast.error("Error", {
+      toast.error("Image upload failed", {
         description: error.message || "Failed to process image",
       });
       return { success: false, error: error.message };

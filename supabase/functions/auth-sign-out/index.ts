@@ -3,6 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,12 +13,11 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authorization header required" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Sign out failed",
+        "Authentication required."
       );
     }
 
@@ -28,30 +28,21 @@ serve(async (req) => {
     const { error } = await supabaseAdmin.auth.admin.signOut(token);
 
     if (error) {
-      return new Response(
-        JSON.stringify({ success: false, error: error.message }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "SIGNOUT_FAILED",
+        "Sign out failed",
+        error.message || "Failed to sign out. Please try again."
       );
     }
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return successResponse({ signedOut: true });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ success: false, error: error?.message || "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Sign out failed",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-

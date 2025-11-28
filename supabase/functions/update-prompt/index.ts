@@ -3,7 +3,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import type { UpdatePromptRequest, UpdatePromptResponse } from "../_shared/types.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
+
+interface UpdatePromptRequest {
+  prompt_id: string;
+  category_id: string;
+  prompt_text: string;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -13,44 +19,40 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authorization header required" } as UpdatePromptResponse),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Prompt update failed",
+        "Authentication required."
       );
     }
 
     const { prompt_id, category_id, prompt_text }: UpdatePromptRequest = await req.json();
 
     if (!prompt_id || typeof prompt_id !== "string") {
-      return new Response(
-        JSON.stringify({ success: false, error: "prompt_id is required" } as UpdatePromptResponse),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "VALIDATION_ERROR",
+        "Prompt update failed",
+        "Prompt ID is required."
       );
     }
 
     if (!category_id || typeof category_id !== "string") {
-      return new Response(
-        JSON.stringify({ success: false, error: "category_id is required" } as UpdatePromptResponse),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "VALIDATION_ERROR",
+        "Prompt update failed",
+        "Category ID is required."
       );
     }
 
     if (!prompt_text || typeof prompt_text !== "string" || prompt_text.trim().length === 0) {
-      return new Response(
-        JSON.stringify({ success: false, error: "prompt_text is required and cannot be empty" } as UpdatePromptResponse),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "VALIDATION_ERROR",
+        "Prompt update failed",
+        "Prompt text is required and cannot be empty."
       );
     }
 
@@ -61,12 +63,11 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: userError?.message || "Invalid authentication" } as UpdatePromptResponse),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "INVALID_TOKEN",
+        "Prompt update failed",
+        userError?.message || "Invalid or expired session."
       );
     }
 
@@ -78,22 +79,20 @@ serve(async (req) => {
       .single();
 
     if (profileError || !profile) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to fetch user profile" } as UpdatePromptResponse),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        500,
+        "DATABASE_ERROR",
+        "Prompt update failed",
+        "Failed to fetch user profile."
       );
     }
 
     if (profile.role !== "admin") {
-      return new Response(
-        JSON.stringify({ success: false, error: "Only admins can update prompts" } as UpdatePromptResponse),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        403,
+        "FORBIDDEN",
+        "Prompt update failed",
+        "Only admins can update prompts."
       );
     }
 
@@ -105,12 +104,11 @@ serve(async (req) => {
       .single();
 
     if (fetchError || !currentPrompt) {
-      return new Response(
-        JSON.stringify({ success: false, error: fetchError?.message || "Prompt not found" } as UpdatePromptResponse),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        404,
+        "NOT_FOUND",
+        "Prompt update failed",
+        fetchError?.message || "Prompt not found."
       );
     }
 
@@ -122,12 +120,11 @@ serve(async (req) => {
       .single();
 
     if (categoryError || !category) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid category_id" } as UpdatePromptResponse),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "INVALID_CATEGORY",
+        "Prompt update failed",
+        "Invalid category ID."
       );
     }
 
@@ -138,22 +135,13 @@ serve(async (req) => {
 
     // If no changes, return success without updating
     if (!categoryChanged && !textChanged) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            id: currentPrompt.id,
-            category_id: currentPrompt.category_id,
-            prompt_text: currentPrompt.prompt_text,
-            created_at: currentPrompt.created_at,
-            created_by: currentPrompt.created_by,
-          },
-        } as UpdatePromptResponse),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return successResponse({
+        id: currentPrompt.id,
+        category_id: currentPrompt.category_id,
+        prompt_text: currentPrompt.prompt_text,
+        created_at: currentPrompt.created_at,
+        created_by: currentPrompt.created_by,
+      });
     }
 
     // Update prompt only if values changed
@@ -168,12 +156,11 @@ serve(async (req) => {
       .single();
 
     if (updateError || !updatedPrompt) {
-      return new Response(
-        JSON.stringify({ success: false, error: updateError?.message || "Failed to update prompt" } as UpdatePromptResponse),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "UPDATE_FAILED",
+        "Prompt update failed",
+        updateError?.message || "Failed to update prompt."
       );
     }
 
@@ -192,30 +179,19 @@ serve(async (req) => {
       console.error("Failed to create prompt log:", logError);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          id: updatedPrompt.id,
-          category_id: updatedPrompt.category_id,
-          prompt_text: updatedPrompt.prompt_text,
-          created_at: updatedPrompt.created_at,
-          created_by: updatedPrompt.created_by,
-        },
-      } as UpdatePromptResponse),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return successResponse({
+      id: updatedPrompt.id,
+      category_id: updatedPrompt.category_id,
+      prompt_text: updatedPrompt.prompt_text,
+      created_at: updatedPrompt.created_at,
+      created_by: updatedPrompt.created_by,
+    });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ success: false, error: error?.message || "Internal server error" } as UpdatePromptResponse),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Prompt update failed",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-

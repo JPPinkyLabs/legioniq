@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api, ApiError } from "@/lib/api";
 
 export interface ProcessScreenshotParams {
   category: string;
@@ -7,8 +7,7 @@ export interface ProcessScreenshotParams {
   ocrText?: string | string[];
 }
 
-export interface ProcessScreenshotResult {
-  success: true;
+export interface ProcessScreenshotData {
   requestId: string;
   ocrText: string;
   aiResponse: string;
@@ -22,39 +21,21 @@ export const useProcessScreenshot = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: ProcessScreenshotParams): Promise<ProcessScreenshotResult> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        throw new Error("Invalid authentication");
-      }
-
-      const { data, error } = await supabase.functions.invoke("process-screenshot", {
-        body: {
-          category: params.category,
-          imageBase64: params.imageBase64,
-          ocrText: params.ocrText,
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+    mutationFn: async (params: ProcessScreenshotParams): Promise<ProcessScreenshotData> => {
+      const response = await api.invoke<ProcessScreenshotData>("process-screenshot", {
+        category: params.category,
+        imageBase64: params.imageBase64,
+        ocrText: params.ocrText,
       });
 
-      if (error) {
-        throw new Error(error.message || "Failed to process screenshot");
+      if (!response.success || !response.data) {
+        throw new ApiError(
+          response.message || response.error || "Failed to process screenshot",
+          response
+        );
       }
 
-      if (!data.success) {
-        throw new Error(data.error || "Failed to process screenshot");
-      }
-
-      return {
-        success: true,
-        requestId: data.requestId,
-        ocrText: data.ocrText,
-        aiResponse: data.aiResponse,
-        cached: data.cached,
-      };
+      return response.data;
     },
     onSuccess: () => {
       // Invalidate daily usage query to refresh the count
@@ -66,4 +47,3 @@ export const useProcessScreenshot = () => {
     },
   });
 };
-

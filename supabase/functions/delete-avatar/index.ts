@@ -3,6 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,12 +13,11 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authorization header required" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Avatar deletion failed",
+        "Authentication required."
       );
     }
 
@@ -28,12 +28,11 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: userError?.message || "Invalid authentication" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "INVALID_TOKEN",
+        "Avatar deletion failed",
+        userError?.message || "Invalid or expired session."
       );
     }
 
@@ -48,30 +47,27 @@ serve(async (req) => {
 
     if (profileError) {
       if (profileError.code === "PGRST116") {
-        return new Response(
-          JSON.stringify({ success: false, error: "Profile not found" }),
-          {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+        return errorResponse(
+          404,
+          "NOT_FOUND",
+          "Avatar deletion failed",
+          "Profile not found."
         );
       }
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to get profile: " + profileError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        500,
+        "DATABASE_ERROR",
+        "Avatar deletion failed",
+        "Failed to get profile: " + profileError.message
       );
     }
 
     if (!currentProfile?.avatar_url) {
-      return new Response(
-        JSON.stringify({ success: false, error: "No avatar to delete" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        404,
+        "NO_AVATAR",
+        "Avatar deletion failed",
+        "No avatar to delete."
       );
     }
 
@@ -97,36 +93,21 @@ serve(async (req) => {
       .eq("id", userId);
 
     if (updateError) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to update profile: " + updateError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        500,
+        "UPDATE_FAILED",
+        "Avatar deletion failed",
+        "Failed to update profile: " + updateError.message
       );
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Avatar deleted successfully",
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return successResponse({ avatarDeleted: true });
   } catch (error: any) {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error?.message || "Internal server error",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Avatar deletion failed",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-

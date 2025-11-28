@@ -1,12 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/authStore";
 import { useNavigate } from "react-router-dom";
 
 export interface DeleteAccountResult {
-  success: true;
-  message: string;
+  message?: string;
 }
 
 export const useDeleteAccount = () => {
@@ -16,29 +15,17 @@ export const useDeleteAccount = () => {
 
   return useMutation({
     mutationFn: async (): Promise<DeleteAccountResult> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        throw new Error("Invalid authentication");
-      }
+      const response = await api.invoke<DeleteAccountResult>("delete-account");
 
-      const { data, error } = await supabase.functions.invoke("delete-account", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) {
-        throw new Error(error.message || "Failed to delete account");
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to delete account");
+      if (!response.success) {
+        throw new ApiError(
+          response.message || response.error || "Failed to delete account",
+          response
+        );
       }
 
       return {
-        success: true,
-        message: data.message || "Account deleted successfully",
+        message: response.data?.message || response.message || "Account deleted successfully",
       };
     },
     onSuccess: async () => {
@@ -49,11 +36,17 @@ export const useDeleteAccount = () => {
         description: "Your account has been deleted successfully.",
       });
     },
-    onError: (error: Error) => {
-      toast.error("Error", {
-        description: error.message || "Failed to delete account",
-      });
+    onError: (error: unknown) => {
+      if (error instanceof ApiError) {
+        toast.error(error.getTitle(), {
+          description: error.getUserMessage(),
+        });
+      } else {
+        const message = error instanceof Error ? error.message : "Failed to delete account";
+        toast.error("Account deletion failed", {
+          description: message,
+        });
+      }
     },
   });
 };
-

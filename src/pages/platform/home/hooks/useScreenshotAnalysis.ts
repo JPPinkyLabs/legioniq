@@ -4,18 +4,12 @@ import { toast } from "sonner";
 import { useOCR } from "./useOCR";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
-import { supabase } from "@/integrations/supabase/client";
+import { api, ApiError } from "@/lib/api";
 
-interface AnalysisResult {
+interface AnalysisData {
   requestId: string;
   aiResponse: string;
   ocrText: string;
-}
-
-interface DailyLimitError extends Error {
-  error: "Daily limit exceeded";
-  message: string;
-  remainingImages: number;
 }
 
 export const useScreenshotAnalysis = () => {
@@ -30,11 +24,18 @@ export const useScreenshotAnalysis = () => {
   const { signOut } = useAuthStore();
 
   const analyzeScreenshot = async (
-    category: string,
+    categoryId: string,
+    adviceId: string,
     base64Images: string | string[]
   ) => {
-    setLoading(true);
+    if (!adviceId) {
+      throw new Error("Advice ID is required");
+    }
+    // Reset previous results and set loading immediately
+    setAiResponse(null);
+    setCurrentRequestId(null);
     setError(null);
+    setLoading(true);
     
     const imagesArray = Array.isArray(base64Images) ? base64Images : [base64Images];
 
@@ -87,55 +88,38 @@ export const useScreenshotAnalysis = () => {
           description: "No readable text was found in the images. Analysis will proceed without OCR text.",
         });
       }
-      
-      // Get session for edge function call
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        throw new Error("Invalid authentication");
-      }
 
       // Call edge function to process screenshot
-      const { data, error: functionError } = await supabase.functions.invoke("process-screenshot", {
-        body: {
-          category,
-          imageBase64: imagesArray,
-          ocrText: ocrTexts,
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+      const response = await api.invoke<AnalysisData>("process-screenshot", {
+        category_id: categoryId,
+        advice_id: adviceId,
+        imageBase64: imagesArray,
+        ocrText: ocrTexts,
       });
 
-      if (functionError) {
-        throw new Error(functionError.message || "Failed to process screenshot");
-      }
-
-      if (!data.success) {
-        // Check if it's a daily limit error (edge function returns detailed error object)
-        if (data.error === "Daily limit exceeded") {
-          const dailyLimitError = {
-            error: data.error,
-            message: data.message || data.error,
-            retryAfter: data.retryAfter,
-            currentCount: data.currentCount,
-            maxImages: data.maxImages,
-            remainingImages: data.remainingImages,
-          };
-          throw dailyLimitError;
+      if (!response.success) {
+        // Check if it's a daily limit error
+        if (response.error === "Daily limit exceeded") {
+          throw new ApiError(
+            response.message || response.error,
+            response,
+            "DAILY_LIMIT_EXCEEDED"
+          );
         }
-        throw new Error(data.error || "Failed to process screenshot");
+        throw new ApiError(
+          response.message || response.error || "Failed to process screenshot",
+          response
+        );
       }
 
-      setCurrentRequestId(data.requestId);
-      setAiResponse(data.aiResponse);
-      setOcrText(data.ocrText);
+      setCurrentRequestId(response.data?.requestId || null);
+      setAiResponse(response.data?.aiResponse || null);
+      setOcrText(response.data?.ocrText || null);
       setError(null);
 
       await queryClient.invalidateQueries({ queryKey: ["dailyUsage"] });
       
       // Silently refetch recent chats without showing loading skeleton
-      // This will update the recent chats list with the new request
       queryClient.refetchQueries({ 
         queryKey: ["requests"],
         type: "active",
@@ -143,11 +127,15 @@ export const useScreenshotAnalysis = () => {
         // Silently handle errors - don't show loading if refetch fails
       });
 
-      return { success: true, data };
+      return { success: true, data: response.data };
     } catch (error: unknown) {
-      // Check if it's an approval pending error
-      const errorMessage = error instanceof Error ? error.message : "Failed to process screenshot";
+      const errorMessage = error instanceof ApiError 
+        ? error.getUserMessage() 
+        : error instanceof Error 
+          ? error.message 
+          : "Failed to process screenshot";
       
+      // Check if it's an approval pending error
       if (errorMessage.includes("pending approval") || errorMessage.includes("Account pending approval")) {
         await signOut();
         navigate("/auth?pending=true");
@@ -158,29 +146,32 @@ export const useScreenshotAnalysis = () => {
         return { success: false, error: errorMessage };
       }
 
-      // Check if it's a daily limit error (from edge function response)
-      if (
-        (error && typeof error === "object" && "error" in error && error.error === "Daily limit exceeded") ||
+      // Check if it's a daily limit error
+      const isDailyLimitError = 
+        (error instanceof ApiError && error.code === "DAILY_LIMIT_EXCEEDED") ||
         errorMessage.includes("Daily limit") ||
-        errorMessage.includes("daily limit")
-      ) {
+        errorMessage.includes("daily limit");
+
+      if (isDailyLimitError) {
         await queryClient.invalidateQueries({ queryKey: ["dailyUsage"] });
-        const limitMessage = 
-          (error && typeof error === "object" && "message" in error && typeof error.message === "string")
-            ? error.message
-            : errorMessage;
-        setError(limitMessage);
+        setError(errorMessage);
         toast.error("Daily limit exceeded", {
-          description: limitMessage,
+          description: errorMessage,
           duration: 5000,
         });
-        return { success: false, error: limitMessage };
+        return { success: false, error: errorMessage };
       }
 
       setError(errorMessage);
-      toast.error("Error", {
-        description: errorMessage,
-      });
+      if (error instanceof ApiError) {
+        toast.error(error.getTitle(), {
+          description: error.getUserMessage(),
+        });
+      } else {
+        toast.error("Screenshot analysis failed", {
+          description: errorMessage,
+        });
+      }
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -188,6 +179,7 @@ export const useScreenshotAnalysis = () => {
   };
 
   const resetAnalysis = () => {
+    setLoading(false);
     setCurrentRequestId(null);
     setAiResponse(null);
     setOcrText(null);
@@ -204,4 +196,3 @@ export const useScreenshotAnalysis = () => {
     resetAnalysis,
   };
 };
-

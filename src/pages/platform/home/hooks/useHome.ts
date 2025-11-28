@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useScreenshotUpload } from "./useScreenshotUpload";
 import { useDailyUsage } from "@/hooks/usage/useDailyUsage";
 import { useDailyLimitValidation } from "@/hooks/usage/useDailyLimitValidation";
-import { useScreenshotAnalysis2 } from "./useScreenshotAnalysis2";
+import { useScreenshotAnalysis } from "./useScreenshotAnalysis";
 import { useTypingEffect } from "@/hooks/other/useTypingEffect";
 import { type CategoryData } from "@/hooks/other/useCategories";
 import type { CategoryAdvice } from "@/hooks/other/useCategoryAdvices";
@@ -27,7 +27,7 @@ export function useHome() {
     error: analysisError,
     analyzeScreenshot,
     resetAnalysis,
-  } = useScreenshotAnalysis2();
+  } = useScreenshotAnalysis();
 
   // Selection states
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);

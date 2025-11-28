@@ -1,18 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api, ApiError } from "@/lib/api";
 
 export interface SubmitRatingParams {
   requestId: string;
   rating: number;
 }
 
-export interface SubmitRatingResult {
-  success: true;
-  data: {
-    id: string;
-    rating: number;
-    [key: string]: unknown;
-  };
+export interface RatingData {
+  id: string;
+  rating: number;
+  [key: string]: unknown;
 }
 
 /**
@@ -22,7 +19,7 @@ export const useSubmitRating = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: SubmitRatingParams): Promise<SubmitRatingResult> => {
+    mutationFn: async (params: SubmitRatingParams): Promise<RatingData> => {
       const { requestId, rating } = params;
 
       if (!requestId || typeof requestId !== "string") {
@@ -33,36 +30,21 @@ export const useSubmitRating = () => {
         throw new Error("rating must be a number between 1 and 5");
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        throw new Error("Invalid authentication");
-      }
-
-      const { data, error } = await supabase.functions.invoke("submit-rating", {
-        body: {
-          requestId,
-          rating,
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+      const response = await api.invoke<RatingData>("submit-rating", {
+        requestId,
+        rating,
       });
 
-      if (error) {
-        throw new Error(error.message || "Failed to update rating");
+      if (!response.success || !response.data) {
+        throw new ApiError(
+          response.message || response.error || "Failed to submit rating",
+          response
+        );
       }
 
-      if (!data.success || !data.data) {
-        throw new Error(data.error || "Failed to update rating");
-      }
-
-      return {
-        success: true,
-        data: data.data,
-      };
+      return response.data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       // Invalidate request query to refresh the data
       queryClient.invalidateQueries({ queryKey: ["request", variables.requestId] });
       // Also invalidate requests list if needed

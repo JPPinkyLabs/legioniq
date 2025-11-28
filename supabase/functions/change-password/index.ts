@@ -3,6 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,24 +13,22 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authorization header required" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Password change failed",
+        "Authentication required."
       );
     }
 
     const { currentPassword, newPassword } = await req.json();
 
     if (!currentPassword || !newPassword) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Current password and new password are required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "VALIDATION_ERROR",
+        "Password change failed",
+        "Current password and new password are required."
       );
     }
 
@@ -40,29 +39,27 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user || !user.email) {
-      return new Response(
-        JSON.stringify({ success: false, error: userError?.message || "Invalid authentication" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "INVALID_TOKEN",
+        "Password change failed",
+        userError?.message || "Invalid or expired session."
       );
     }
 
     // Check if user is approved
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("is_approved")
       .eq("id", user.id)
       .single();
 
-    if (profileError || !profile || !profile.is_approved) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Account pending approval" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+    if (!profile || !profile.is_approved) {
+      return errorResponse(
+        403,
+        "NOT_APPROVED",
+        "Password change failed",
+        "Your account is pending approval."
       );
     }
 
@@ -73,12 +70,11 @@ serve(async (req) => {
     });
 
     if (signInError) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Current password is incorrect" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "INVALID_PASSWORD",
+        "Password change failed",
+        "Current password is incorrect."
       );
     }
 
@@ -88,30 +84,46 @@ serve(async (req) => {
     });
 
     if (updateError) {
-      return new Response(
-        JSON.stringify({ success: false, error: updateError.message || "Failed to update password" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "UPDATE_FAILED",
+        "Password change failed",
+        updateError.message || "Failed to update password. Please try again."
       );
     }
 
-    return new Response(
-      JSON.stringify({ success: true, message: "Password updated successfully" }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    // Re-authenticate user with new password to get a fresh session
+    const { data: newAuthData, error: reAuthError } = await supabaseAdmin.auth.signInWithPassword({
+      email: user.email,
+      password: newPassword,
+    });
+
+    if (reAuthError || !newAuthData.session) {
+      // Password was changed but couldn't get new session - user will need to re-login
+      return successResponse({
+        passwordChanged: true,
+        sessionRefreshed: false,
+      });
+    }
+
+    // Return the new session so client can update
+    return successResponse({
+      passwordChanged: true,
+      sessionRefreshed: true,
+      session: {
+        access_token: newAuthData.session.access_token,
+        refresh_token: newAuthData.session.refresh_token,
+        expires_in: newAuthData.session.expires_in || 3600,
+        expires_at: newAuthData.session.expires_at,
+        token_type: newAuthData.session.token_type,
+      },
+    });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ success: false, error: error?.message || "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Password change failed",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-

@@ -38,7 +38,7 @@ export const useRating = () => {
         return { success: false, error: "Account pending approval" };
       }
 
-      toast.error("Error", {
+      toast.error("Rating failed", {
         description: errorMessage,
       });
       return { success: false, error: errorMessage };

@@ -3,7 +3,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api, ApiError } from "@/lib/api";
+
+interface UploadAvatarResult {
+  publicUrl?: string;
+}
 
 export const useAvatarUpload = () => {
   const { user } = useAuth();
@@ -21,27 +25,15 @@ export const useAvatarUpload = () => {
       setIsUploading(true);
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session?.access_token) {
-          throw new Error("Invalid authentication");
-        }
-
-        const { data, error } = await supabase.functions.invoke("upload-avatar", {
-          body: {
-            base64Image,
-          },
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
+        const response = await api.invoke<UploadAvatarResult>("upload-avatar", {
+          base64Image,
         });
 
-        if (error) {
-          throw new Error(error.message || "Failed to upload avatar");
-        }
-
-        if (!data.success) {
-          throw new Error(data.error || "Failed to upload avatar");
+        if (!response.success) {
+          throw new ApiError(
+            response.message || response.error || "Failed to upload avatar",
+            response
+          );
         }
 
         // Invalidate and refetch to ensure fresh data
@@ -61,12 +53,18 @@ export const useAvatarUpload = () => {
           description: "Your profile picture has been updated successfully.",
         });
 
-        return data.publicUrl;
+        return response.data?.publicUrl;
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : "Failed to upload avatar";
-        toast.error("Error", {
-          description: errorMessage,
-        });
+        if (error instanceof ApiError) {
+          toast.error(error.getTitle(), {
+            description: error.getUserMessage(),
+          });
+        } else {
+          const errorMessage = error instanceof Error ? error.message : "Failed to upload avatar";
+          toast.error("Avatar upload failed", {
+            description: errorMessage,
+          });
+        }
         throw error;
       } finally {
         setIsUploading(false);
@@ -83,24 +81,13 @@ export const useAvatarUpload = () => {
       setIsDeleting(true);
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session?.access_token) {
-          throw new Error("Invalid authentication");
-        }
+        const response = await api.invoke("delete-avatar");
 
-        const { data, error } = await supabase.functions.invoke("delete-avatar", {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-
-        if (error) {
-          throw new Error(error.message || "Failed to delete avatar");
-        }
-
-        if (!data.success) {
-          throw new Error(data.error || "Failed to delete avatar");
+        if (!response.success) {
+          throw new ApiError(
+            response.message || response.error || "Failed to delete avatar",
+            response
+          );
         }
 
         // Invalidate and refetch to ensure fresh data
@@ -120,10 +107,16 @@ export const useAvatarUpload = () => {
           description: "Your profile picture has been removed successfully.",
         });
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : "Failed to delete avatar";
-        toast.error("Error", {
-          description: errorMessage,
-        });
+        if (error instanceof ApiError) {
+          toast.error(error.getTitle(), {
+            description: error.getUserMessage(),
+          });
+        } else {
+          const errorMessage = error instanceof Error ? error.message : "Failed to delete avatar";
+          toast.error("Avatar deletion failed", {
+            description: errorMessage,
+          });
+        }
         throw error;
       } finally {
         setIsDeleting(false);

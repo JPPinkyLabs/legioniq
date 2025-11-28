@@ -33,7 +33,7 @@ interface ChangePasswordModalProps {
 }
 
 export const ChangePasswordModal = ({ isOpen, onClose }: ChangePasswordModalProps) => {
-  const { mutate: changePassword, isPending } = useChangePassword();
+  const { changePassword, isLoading: isPending } = useChangePassword();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

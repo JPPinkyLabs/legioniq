@@ -3,7 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import type { AuthResponse } from "../_shared/types.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -14,12 +14,11 @@ serve(async (req) => {
     const { email, password, name } = await req.json();
 
     if (!email || !password || !name) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Email, password, and name are required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "VALIDATION_ERROR",
+        "Sign up failed",
+        "Email, password, and name are required."
       );
     }
 
@@ -37,12 +36,11 @@ serve(async (req) => {
     });
 
     if (signUpError || !signUpData.user) {
-      return new Response(
-        JSON.stringify({ success: false, error: signUpError?.message || "Failed to create account" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "SIGNUP_FAILED",
+        "Sign up failed",
+        signUpError?.message || "Failed to create account. Please try again."
       );
     }
 
@@ -60,7 +58,7 @@ serve(async (req) => {
     }
 
     // Check if user is approved and get role
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("is_approved, role")
       .eq("id", signUpData.user.id)
@@ -75,22 +73,15 @@ serve(async (req) => {
         await supabaseAdmin.auth.admin.signOut(session.access_token);
       }
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          user: {
-            id: signUpData.user.id,
-            email: signUpData.user.email,
-            user_metadata: signUpData.user.user_metadata,
-          },
-          isApproved: false,
-          role: role,
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return successResponse({
+        user: {
+          id: signUpData.user.id,
+          email: signUpData.user.email,
+          user_metadata: signUpData.user.user_metadata,
+        },
+        isApproved: false,
+        role,
+      });
     }
 
     // Create session log if approved and session exists
@@ -100,8 +91,7 @@ serve(async (req) => {
       });
     }
 
-    const response: AuthResponse = {
-      success: true,
+    return successResponse({
       session: session ? {
         access_token: session.access_token,
         refresh_token: session.refresh_token,
@@ -120,21 +110,14 @@ serve(async (req) => {
         user_metadata: signUpData.user.user_metadata,
       },
       isApproved: true,
-      role: role,
-    };
-
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      role,
     });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ success: false, error: error?.message || "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Sign up failed",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-

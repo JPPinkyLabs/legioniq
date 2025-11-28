@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api, ApiError } from "@/lib/api";
 
 export interface DailyUsageStatus {
   can_make_request: boolean;
@@ -7,12 +7,6 @@ export interface DailyUsageStatus {
   max_images: number;
   reset_at: string;
   is_unlimited: boolean;
-}
-
-interface DailyUsageResponse {
-  success: boolean;
-  data?: DailyUsageStatus;
-  error?: string;
 }
 
 export const useDailyUsage = () => {
@@ -23,24 +17,16 @@ export const useDailyUsage = () => {
   } = useQuery<DailyUsageStatus>({
     queryKey: ["dailyUsage"],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("User not authenticated");
+      const response = await api.invoke<DailyUsageStatus>("get-daily-usage");
 
-      const { data, error } = await supabase.functions.invoke<DailyUsageResponse>(
-        "get-daily-usage",
-        {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        }
-      );
-
-      if (error) throw error;
-      if (!data?.success || !data?.data) {
-        throw new Error(data?.error || "No data returned from function");
+      if (!response.success || !response.data) {
+        throw new ApiError(
+          response.message || response.error || "Failed to get daily usage",
+          response
+        );
       }
 
-      return data.data;
+      return response.data;
     },
     refetchInterval: 30000, // Refetch every 30 seconds
     staleTime: 0, // Always consider stale for revalidation

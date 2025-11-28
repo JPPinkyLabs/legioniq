@@ -3,6 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,12 +13,11 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authorization header required" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Reset preferences failed",
+        "Authentication required."
       );
     }
 
@@ -28,12 +28,11 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: userError?.message || "Invalid authentication" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "INVALID_TOKEN",
+        "Reset preferences failed",
+        userError?.message || "Invalid or expired session."
       );
     }
 
@@ -44,12 +43,11 @@ serve(async (req) => {
       .eq("user_id", user.id);
 
     if (deleteError) {
-      return new Response(
-        JSON.stringify({ success: false, error: deleteError.message || "Failed to delete preferences" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "DELETE_FAILED",
+        "Reset preferences failed",
+        deleteError.message || "Failed to delete preferences."
       );
     }
 
@@ -60,29 +58,21 @@ serve(async (req) => {
       .eq("id", user.id);
 
     if (updateError) {
-      return new Response(
-        JSON.stringify({ success: false, error: updateError.message || "Failed to update onboarding status" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "UPDATE_FAILED",
+        "Reset preferences failed",
+        updateError.message || "Failed to update onboarding status."
       );
     }
 
-    return new Response(
-      JSON.stringify({ success: true, message: "Preferences reset successfully" }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return successResponse({ preferencesReset: true });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ success: false, error: error?.message || "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Reset preferences failed",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });

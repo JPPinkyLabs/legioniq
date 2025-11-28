@@ -1,39 +1,37 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api, ApiError } from "@/lib/api";
+
+interface OCRResult {
+  ocrText?: string;
+}
 
 export const useOCR = () => {
   const mutation = useMutation({
     mutationFn: async (base64Image: string): Promise<string> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        throw new Error("Invalid authentication");
-      }
-
-      const { data, error } = await supabase.functions.invoke("extract-ocr", {
-        body: {
-          base64Image,
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+      const response = await api.invoke<OCRResult>("extract-ocr", {
+        base64Image,
       });
 
-      if (error) {
-        throw new Error(error.message || "Failed to extract text from image");
+      if (!response.success) {
+        throw new ApiError(
+          response.message || response.error || "Failed to extract text from image",
+          response
+        );
       }
 
-      if (!data.success) {
-        throw new Error(data.error || "Failed to extract text from image");
-      }
-
-      return data.ocrText || '';
+      return response.data?.ocrText || '';
     },
-    onError: (error: Error) => {
-      if (error.message.includes('OCR processing failed') || error.message.includes('API') || error.message.includes('OCR')) {
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof ApiError 
+        ? error.getUserMessage() 
+        : error instanceof Error 
+          ? error.message 
+          : "Failed to extract text from image";
+      
+      if (errorMessage.includes('OCR processing failed') || errorMessage.includes('API') || errorMessage.includes('OCR')) {
         toast.error("OCR Error", {
-          description: error.message || "Failed to extract text from image",
+          description: errorMessage,
         });
       }
     },
@@ -45,4 +43,3 @@ export const useOCR = () => {
     error: mutation.error,
   };
 };
-

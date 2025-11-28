@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { api, ApiError } from "@/lib/api";
 
 export interface SignInFormData {
   email: string;
@@ -16,6 +17,16 @@ export interface SignUpFormData {
 }
 
 export type AuthFormData = SignInFormData | SignUpFormData;
+
+interface AuthSessionData {
+  session?: {
+    access_token: string;
+    refresh_token?: string;
+  };
+  user?: User;
+  isApproved?: boolean;
+  role?: string;
+}
 
 interface AuthState {
   session: Session | null;
@@ -202,16 +213,11 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // Validate session with edge function
-          const { data, error } = await supabase.functions.invoke("auth-session", {
-            headers: {
-              Authorization: `Bearer ${localSession.access_token}`,
-            },
-          });
+          const response = await api.invoke<AuthSessionData>("auth-session");
 
-          if (error || !data) {
+          if (!response.success) {
             // Session is invalid - clear local state without calling signOut()
-            // to avoid 403 errors from trying to invalidate an already-invalid token
-            console.warn("Session validation failed, clearing local state:", error?.message || data?.error);
+            console.warn("Session validation failed, clearing local state:", response.message || response.error);
             get().clearAuth();
             
             // Clear localStorage session manually
@@ -225,15 +231,15 @@ export const useAuthStore = create<AuthState>()(
               }
               localStorage.removeItem('auth-storage');
             } catch (localError) {
-              // Ignore errors when clearing localStorage
               console.warn("Error clearing localStorage:", localError);
             }
             return;
           }
+
+          const data = response.data;
 
           // Check if user is not approved
-          if (data.isApproved === false) {
-            // User not approved - clear local state without calling signOut()
+          if (data?.isApproved === false) {
             get().clearAuth();
             
             // Clear localStorage session manually
@@ -247,13 +253,12 @@ export const useAuthStore = create<AuthState>()(
               }
               localStorage.removeItem('auth-storage');
             } catch (localError) {
-              // Ignore errors when clearing localStorage
               console.warn("Error clearing localStorage:", localError);
             }
             return;
           }
 
-          if (data.session && data.user && data.isApproved) {
+          if (data?.session && data?.user && data?.isApproved) {
             // Set session in Supabase client
             await supabase.auth.setSession({
               access_token: data.session.access_token,
@@ -275,7 +280,6 @@ export const useAuthStore = create<AuthState>()(
               }
               
               // Always verify and refresh avatar URL after initialization
-              // This ensures signed URLs are regenerated if expired
               get().loadAvatarUrl().catch((error) => {
                 console.error("Error loading avatar URL in background:", error);
               });
@@ -287,29 +291,27 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (error) {
           console.error("Error initializing auth:", error);
-          // On error, clear state without calling signOut()
           get().clearAuth();
         }
       },
 
       signIn: async (data: SignInFormData) => {
         try {
-          const { data: responseData, error } = await supabase.functions.invoke("auth-sign-in", {
-            body: {
-              email: data.email,
-              password: data.password,
-            },
-          });
+          const response = await api.invoke<AuthSessionData>("auth-sign-in", {
+            email: data.email,
+            password: data.password,
+          }, { requireAuth: false });
 
-          if (error) {
-            throw new Error(error.message || "Failed to sign in");
+          if (!response.success) {
+            throw new ApiError(
+              response.message || response.error || "Failed to sign in",
+              response
+            );
           }
 
-          if (!responseData.success) {
-            throw new Error(responseData.error || "Failed to sign in");
-          }
+          const responseData = response.data;
 
-          if (responseData.isApproved === false) {
+          if (responseData?.isApproved === false) {
             get().clearAuth();
             // Set role even if not approved
             if (responseData.role) {
@@ -318,11 +320,11 @@ export const useAuthStore = create<AuthState>()(
             return { success: true, isApproved: false };
           }
 
-          if (responseData.session && responseData.user) {
+          if (responseData?.session && responseData?.user) {
             // Set session in Supabase client
             await supabase.auth.setSession({
               access_token: responseData.session.access_token,
-              refresh_token: responseData.session.refresh_token,
+              refresh_token: responseData.session.refresh_token || "",
             });
 
             const { data: { session } } = await supabase.auth.getSession();
@@ -335,7 +337,7 @@ export const useAuthStore = create<AuthState>()(
                 get().setRole(responseData.role);
               }
               
-              // Load avatar URL after successful sign in (will use cached if available)
+              // Load avatar URL after successful sign in
               get().loadAvatarUrl().catch((error) => {
                 console.error("Error loading avatar URL:", error);
               });
@@ -350,8 +352,18 @@ export const useAuthStore = create<AuthState>()(
 
           return { success: false, error: "No session created" };
         } catch (error: unknown) {
-          const errorMessage = error instanceof Error ? error.message : "An error occurred while logging in.";
-          toast.error("Error", {
+          if (error instanceof ApiError) {
+            toast.error(error.getTitle(), {
+              description: error.getUserMessage(),
+            });
+            return { success: false, error: error.getUserMessage() };
+          }
+          
+          const errorMessage = error instanceof Error 
+            ? error.message 
+            : "An error occurred while logging in.";
+          
+          toast.error("Sign in failed", {
             description: errorMessage,
           });
           return { success: false, error: errorMessage };
@@ -362,25 +374,23 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isSigningUp: true });
           
-          const { data: responseData, error } = await supabase.functions.invoke("auth-sign-up", {
-            body: {
-              email: data.email,
-              password: data.password,
-              name: data.name,
-            },
-          });
+          const response = await api.invoke<AuthSessionData>("auth-sign-up", {
+            email: data.email,
+            password: data.password,
+            name: data.name,
+          }, { requireAuth: false });
 
-          if (error) {
+          if (!response.success) {
             set({ isSigningUp: false });
-            throw new Error(error.message || "Failed to create account");
+            throw new ApiError(
+              response.message || response.error || "Failed to create account",
+              response
+            );
           }
 
-          if (!responseData.success) {
-            set({ isSigningUp: false });
-            throw new Error(responseData.error || "Failed to create account");
-          }
+          const responseData = response.data;
 
-          if (responseData.isApproved === false) {
+          if (responseData?.isApproved === false) {
             get().clearAuth();
             set({ isSigningUp: false });
             // Set role even if not approved
@@ -395,11 +405,11 @@ export const useAuthStore = create<AuthState>()(
             return { success: true, isApproved: false };
           }
 
-          if (responseData.session && responseData.user) {
+          if (responseData?.session && responseData?.user) {
             // Set session in Supabase client
             await supabase.auth.setSession({
               access_token: responseData.session.access_token,
-              refresh_token: responseData.session.refresh_token,
+              refresh_token: responseData.session.refresh_token || "",
             });
 
             const { data: { session } } = await supabase.auth.getSession();
@@ -412,7 +422,7 @@ export const useAuthStore = create<AuthState>()(
                 get().setRole(responseData.role);
               }
 
-              // Load avatar URL after successful sign up (will use cached if available)
+              // Load avatar URL after successful sign up
               get().loadAvatarUrl().catch((error) => {
                 console.error("Error loading avatar URL:", error);
               });
@@ -434,8 +444,19 @@ export const useAuthStore = create<AuthState>()(
           return { success: true, isApproved: false };
         } catch (error: unknown) {
           set({ isSigningUp: false });
-          const errorMessage = error instanceof Error ? error.message : "An error occurred while creating your account.";
-          toast.error("Error", {
+          
+          if (error instanceof ApiError) {
+            toast.error(error.getTitle(), {
+              description: error.getUserMessage(),
+            });
+            return { success: false, error: error.getUserMessage() };
+          }
+          
+          const errorMessage = error instanceof Error 
+            ? error.message 
+            : "An error occurred while creating your account.";
+          
+          toast.error("Sign up failed", {
             description: errorMessage,
           });
           return { success: false, error: errorMessage };
@@ -452,20 +473,14 @@ export const useAuthStore = create<AuthState>()(
           if (session?.access_token) {
             // Call edge function to sign out on server (non-blocking)
             // Don't await to avoid blocking if it fails
-            supabase.functions.invoke("auth-sign-out", {
-              headers: {
-                Authorization: `Bearer ${session.access_token}`,
-              },
-            }).catch((functionError) => {
+            api.invoke("auth-sign-out").catch((functionError) => {
               // Silently handle edge function errors - local logout already happened
               console.warn("Edge function sign-out error (non-critical):", functionError);
             });
           }
 
-          // Clear Supabase session from localStorage without calling signOut()
-          // This avoids the 403 error from trying to invalidate an already-invalidated token
+          // Clear Supabase session from localStorage
           try {
-            // Remove Supabase auth session from localStorage
             const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
             if (supabaseUrl) {
               const projectRef = supabaseUrl.split('//')[1]?.split('.')[0];
@@ -473,10 +488,8 @@ export const useAuthStore = create<AuthState>()(
                 localStorage.removeItem(`sb-${projectRef}-auth-token`);
               }
             }
-            // Also clear our auth storage
             localStorage.removeItem('auth-storage');
           } catch (localError) {
-            // Ignore errors when clearing localStorage
             console.warn("Error clearing localStorage (non-critical):", localError);
           }
 
@@ -488,7 +501,7 @@ export const useAuthStore = create<AuthState>()(
           get().clearAuth();
           
           const errorMessage = error instanceof Error ? error.message : "An error occurred while logging out.";
-          toast.error("Error", {
+          toast.error("Sign out failed", {
             description: errorMessage,
           });
         }
@@ -509,21 +522,16 @@ export const useAuthStore = create<AuthState>()(
 
       checkUserApproval: async (userId: string) => {
         try {
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          const { data, error } = await supabase.functions.invoke("auth-check-approval", {
-            body: { userId },
-            headers: session?.access_token ? {
-              Authorization: `Bearer ${session.access_token}`,
-            } : undefined,
-          });
+          const response = await api.invoke<{ isApproved?: boolean }>("auth-check-approval", {
+            userId,
+          }, { requireAuth: false });
 
-          if (error) {
-            console.error("Error checking user approval:", error);
+          if (!response.success) {
+            console.error("Error checking user approval:", response.message || response.error);
             return false;
           }
 
-          return data?.isApproved ?? false;
+          return response.data?.isApproved ?? false;
         } catch (error) {
           console.error("Error checking user approval:", error);
           return false;
@@ -544,5 +552,3 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
-
-

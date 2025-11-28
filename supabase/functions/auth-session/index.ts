@@ -3,7 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import type { SessionResponse } from "../_shared/types.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -13,12 +13,11 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Authorization header required" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Session error",
+        "Authentication required."
       );
     }
 
@@ -29,17 +28,16 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: userError?.message || "Invalid token" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "INVALID_TOKEN",
+        "Session error",
+        userError?.message || "Invalid or expired session."
       );
     }
 
     // Check if user is approved and get role
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("is_approved, role")
       .eq("id", user.id)
@@ -49,23 +47,16 @@ serve(async (req) => {
     const role = profile?.role ?? "user";
 
     if (!isApproved) {
-      return new Response(
-        JSON.stringify({
-          session: undefined,
-          user: undefined,
-          isApproved: false,
-          role: role,
-          error: "Account pending approval",
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return successResponse({
+        session: undefined,
+        user: undefined,
+        isApproved: false,
+        role,
+      });
     }
 
     // Build session from token and user
-    const response: SessionResponse = {
+    return successResponse({
       session: {
         access_token: token,
         refresh_token: "", // Refresh token not available from getUser
@@ -84,21 +75,14 @@ serve(async (req) => {
         user_metadata: user.user_metadata,
       },
       isApproved: true,
-      role: role,
-    };
-
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      role,
     });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error?.message || "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Session error",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-

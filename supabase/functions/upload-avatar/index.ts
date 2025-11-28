@@ -3,6 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2MB
 
@@ -14,12 +15,11 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authorization header required" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Avatar upload failed",
+        "Authentication required."
       );
     }
 
@@ -30,12 +30,11 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: userError?.message || "Invalid authentication" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "INVALID_TOKEN",
+        "Avatar upload failed",
+        userError?.message || "Invalid or expired session."
       );
     }
 
@@ -44,12 +43,11 @@ serve(async (req) => {
     const { base64Image } = body;
 
     if (!base64Image) {
-      return new Response(
-        JSON.stringify({ success: false, error: "base64Image is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "VALIDATION_ERROR",
+        "Avatar upload failed",
+        "Image is required."
       );
     }
 
@@ -68,12 +66,11 @@ serve(async (req) => {
     base64Data = base64Data.replace(/\s/g, "");
 
     if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64Data)) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid base64 format for image upload" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "INVALID_FORMAT",
+        "Avatar upload failed",
+        "Invalid image format. Please upload a valid image."
       );
     }
 
@@ -84,12 +81,11 @@ serve(async (req) => {
     }
 
     if (imageBytes.length > MAX_AVATAR_SIZE) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Image size exceeds 2MB limit" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "FILE_TOO_LARGE",
+        "Avatar upload failed",
+        "Image size exceeds 2MB limit."
       );
     }
 
@@ -101,12 +97,11 @@ serve(async (req) => {
       .single();
 
     if (profileError && profileError.code !== "PGRST116") {
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to get current profile: " + profileError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        500,
+        "DATABASE_ERROR",
+        "Avatar upload failed",
+        "Failed to get current profile: " + profileError.message
       );
     }
 
@@ -120,12 +115,11 @@ serve(async (req) => {
 
     if (uploadError) {
       console.error("[upload-avatar] Storage upload error:", uploadError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to upload avatar: " + uploadError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        500,
+        "UPLOAD_FAILED",
+        "Avatar upload failed",
+        "Failed to upload avatar: " + uploadError.message
       );
     }
 
@@ -143,12 +137,11 @@ serve(async (req) => {
     if (updateError) {
       // If update fails, try to delete the uploaded file
       await supabaseAdmin.storage.from("avatars").remove([fileName]);
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to update profile: " + updateError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        500,
+        "UPDATE_FAILED",
+        "Avatar upload failed",
+        "Failed to update profile: " + updateError.message
       );
     }
 
@@ -161,28 +154,16 @@ serve(async (req) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        publicUrl: urlData.publicUrl,
-        oldAvatarUrl: currentProfile?.avatar_url,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return successResponse({
+      publicUrl: urlData.publicUrl,
+      oldAvatarUrl: currentProfile?.avatar_url,
+    });
   } catch (error: any) {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error?.message || "Internal server error",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Avatar upload failed",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-

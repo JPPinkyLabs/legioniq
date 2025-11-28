@@ -3,20 +3,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 const DEFAULT_MAX_DAILY_IMAGES = 15;
-
-interface DailyUsageResponse {
-  success: boolean;
-  data?: {
-    can_make_request: boolean;
-    current_count: number;
-    max_images: number;
-    reset_at: string;
-    is_unlimited: boolean;
-  };
-  error?: string;
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -26,12 +15,11 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authorization header required" } as DailyUsageResponse),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Usage data error",
+        "Authentication required."
       );
     }
 
@@ -42,12 +30,11 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: userError?.message || "Invalid authentication" } as DailyUsageResponse),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "INVALID_TOKEN",
+        "Usage data error",
+        userError?.message || "Invalid or expired session."
       );
     }
 
@@ -59,12 +46,11 @@ serve(async (req) => {
       .single();
 
     if (profileError) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to fetch user profile" } as DailyUsageResponse),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        500,
+        "DATABASE_ERROR",
+        "Usage data error",
+        "Failed to fetch user profile."
       );
     }
 
@@ -81,22 +67,13 @@ serve(async (req) => {
         0, 0, 0, 0
       ));
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            can_make_request: true,
-            current_count: 0,
-            max_images: -1, // -1 indicates unlimited
-            reset_at: resetAt.toISOString(),
-            is_unlimited: true,
-          },
-        } as DailyUsageResponse),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return successResponse({
+        can_make_request: true,
+        current_count: 0,
+        max_images: -1, // -1 indicates unlimited
+        reset_at: resetAt.toISOString(),
+        is_unlimited: true,
+      });
     }
 
     // For non-admin users, get the daily limit from environment
@@ -115,36 +92,24 @@ serve(async (req) => {
     );
 
     if (usageError) {
-      return new Response(
-        JSON.stringify({ success: false, error: usageError.message } as DailyUsageResponse),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        500,
+        "DATABASE_ERROR",
+        "Usage data error",
+        usageError.message || "Failed to fetch usage data."
       );
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          ...usageData,
-          is_unlimited: false,
-        },
-      } as DailyUsageResponse),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return successResponse({
+      ...usageData,
+      is_unlimited: false,
+    });
   } catch (error: any) {
-    return new Response(
-      JSON.stringify({ success: false, error: error?.message || "Internal server error" } as DailyUsageResponse),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Usage data error",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-

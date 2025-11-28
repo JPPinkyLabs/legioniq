@@ -1,16 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+import { supabase } from "@/integrations/supabase/client";
 
 export interface ChangePasswordParams {
   currentPassword: string;
@@ -18,19 +9,18 @@ export interface ChangePasswordParams {
 }
 
 export interface ChangePasswordResult {
-  success: true;
-  message: string;
+  passwordChanged?: boolean;
+  sessionRefreshed?: boolean;
+  session?: {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+    expires_at?: number;
+    token_type: string;
+  };
 }
 
 export const useChangePassword = () => {
-  const form = useForm<ChangePasswordFormData>({
-    resolver: zodResolver(changePasswordSchema),
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-    },
-  });
-
   const mutation = useMutation({
     mutationFn: async (params: ChangePasswordParams): Promise<ChangePasswordResult> => {
       const { currentPassword, newPassword } = params;
@@ -39,52 +29,51 @@ export const useChangePassword = () => {
         throw new Error("Current password and new password are required");
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        throw new Error("Invalid authentication");
-      }
-
-      const { data, error } = await supabase.functions.invoke("change-password", {
-        body: {
-          currentPassword,
-          newPassword,
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+      const response = await api.invoke<ChangePasswordResult>("change-password", {
+        currentPassword,
+        newPassword,
       });
 
-      if (error) {
-        throw new Error(error.message || "Failed to update password");
+      if (!response.success) {
+        throw new ApiError(
+          response.message || response.error || "Failed to update password",
+          response
+        );
       }
 
-      if (!data.success) {
-        throw new Error(data.error || "Failed to update password");
+      const result = response.data;
+
+      // If we got a new session, update it in the Supabase client
+      if (result?.sessionRefreshed && result?.session) {
+        await supabase.auth.setSession({
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token,
+        });
       }
 
-      return {
-        success: true,
-        message: data.message || "Password updated successfully",
-      };
+      return result || { passwordChanged: true };
     },
     onSuccess: () => {
-      form.reset();
       toast.success("Password updated", {
         description: "Your password has been updated successfully.",
       });
     },
-    onError: (error: Error) => {
-      toast.error("Error", {
-        description: error.message || "Failed to update password",
-      });
+    onError: (error: unknown) => {
+      if (error instanceof ApiError) {
+        toast.error(error.getTitle(), {
+          description: error.getUserMessage(),
+        });
+      } else {
+        const message = error instanceof Error ? error.message : "Failed to update password";
+        toast.error("Password change failed", {
+          description: message,
+        });
+      }
     },
   });
 
   return {
-    form,
-    changePassword: mutation.mutateAsync,
+    changePassword: mutation.mutate,
     isLoading: mutation.isPending,
   };
 };
-

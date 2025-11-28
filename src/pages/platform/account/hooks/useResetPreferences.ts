@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api, ApiError } from "@/lib/api";
 import { toast } from "sonner";
 
 export const useResetPreferences = () => {
@@ -7,24 +7,13 @@ export const useResetPreferences = () => {
 
   return useMutation({
     mutationFn: async (): Promise<void> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        throw new Error("Invalid authentication");
-      }
+      const response = await api.invoke("reset-preferences");
 
-      const { data, error } = await supabase.functions.invoke("reset-preferences", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) {
-        throw new Error(error.message || "Failed to reset preferences");
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to reset preferences");
+      if (!response.success) {
+        throw new ApiError(
+          response.message || response.error || "Failed to reset preferences",
+          response
+        );
       }
     },
     onSuccess: async () => {
@@ -38,11 +27,17 @@ export const useResetPreferences = () => {
         description: "Your preferences have been successfully reset. Please complete the onboarding again.",
       });
     },
-    onError: (error: Error) => {
-      toast.error("Failed to reset preferences", {
-        description: error.message || "An error occurred while resetting your preferences.",
-      });
+    onError: (error: unknown) => {
+      if (error instanceof ApiError) {
+        toast.error(error.getTitle(), {
+          description: error.getUserMessage(),
+        });
+      } else {
+        const message = error instanceof Error ? error.message : "An error occurred while resetting your preferences.";
+        toast.error("Reset preferences failed", {
+          description: message,
+        });
+      }
     },
   });
 };
-

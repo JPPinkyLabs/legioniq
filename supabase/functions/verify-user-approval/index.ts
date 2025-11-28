@@ -3,6 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,12 +13,11 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Authorization header required" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Verification failed",
+        "Authentication required."
       );
     }
 
@@ -28,12 +28,11 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: userError?.message || "Invalid authentication" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "INVALID_TOKEN",
+        "Verification failed",
+        userError?.message || "Invalid or expired session."
       );
     }
 
@@ -46,49 +45,38 @@ serve(async (req) => {
 
     if (profileError) {
       if (profileError.code === "PGRST116") {
-        return new Response(
-          JSON.stringify({ error: "Account pending approval" }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+        return errorResponse(
+          403,
+          "NOT_APPROVED",
+          "Verification failed",
+          "Your account is pending approval."
         );
       }
       
-      return new Response(
-        JSON.stringify({ error: profileError.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        500,
+        "DATABASE_ERROR",
+        "Verification failed",
+        profileError.message || "Failed to check approval status."
       );
     }
 
     if (!profile || !profile.is_approved) {
-      return new Response(
-        JSON.stringify({ error: "Account pending approval" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        403,
+        "NOT_APPROVED",
+        "Verification failed",
+        "Your account is pending approval."
       );
     }
 
-    return new Response(
-      JSON.stringify({ userId: user.id }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return successResponse({ userId: user.id });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error?.message || "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Verification failed",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-

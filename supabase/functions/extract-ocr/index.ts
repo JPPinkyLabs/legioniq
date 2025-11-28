@@ -2,6 +2,7 @@
 // deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { successResponse, errorResponse } from "../_shared/response.ts";
 
 interface OCRResponse {
   IsErroredOnProcessing: boolean;
@@ -19,24 +20,22 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authorization header required" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        401,
+        "AUTH_REQUIRED",
+        "Text extraction failed",
+        "Authentication required."
       );
     }
 
     const ocrApiKey = Deno.env.get("OCR_SPACE_API_KEY");
     if (!ocrApiKey) {
       console.error('[extract-ocr] OCR_SPACE_API_KEY not found in environment variables');
-      return new Response(
-        JSON.stringify({ success: false, error: "OCR API key not configured" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        500,
+        "CONFIG_ERROR",
+        "Text extraction failed",
+        "OCR service is not configured."
       );
     }
     
@@ -47,19 +46,17 @@ serve(async (req) => {
 
     if (!base64Image) {
       console.error('[extract-ocr] base64Image is missing from request body');
-      return new Response(
-        JSON.stringify({ success: false, error: "base64Image is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "VALIDATION_ERROR",
+        "Text extraction failed",
+        "Image is required."
       );
     }
     
     console.log('[extract-ocr] Received base64Image, length:', base64Image?.length || 0);
 
     // Validate file size: OCR API maximum is 1024KB
-    // Base64 encoding increases size by ~33%, so we need to decode to get actual file size
     try {
       let base64Data = base64Image.trim();
       if (base64Data.includes(',')) {
@@ -68,7 +65,6 @@ serve(async (req) => {
       base64Data = base64Data.replace(/\s/g, '');
       
       // Calculate actual file size from base64
-      // Base64: 4 characters represent 3 bytes, so size = (base64Length * 3) / 4
       const actualFileSizeBytes = (base64Data.length * 3) / 4;
       const MAX_FILE_SIZE_BYTES = 1024 * 1024; // 1024KB
       
@@ -78,15 +74,11 @@ serve(async (req) => {
           maxSize: MAX_FILE_SIZE_BYTES,
           base64Length: base64Data.length
         });
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: `File size exceeds maximum limit of 1MB (1024KB). Actual size: ${Math.round(actualFileSizeBytes / 1024)}KB` 
-          }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+        return errorResponse(
+          400,
+          "FILE_TOO_LARGE",
+          "Text extraction failed",
+          `File size exceeds maximum limit of 1MB. Actual size: ${Math.round(actualFileSizeBytes / 1024)}KB.`
         );
       }
       
@@ -97,15 +89,11 @@ serve(async (req) => {
       });
     } catch (sizeError) {
       console.error('[extract-ocr] Error validating file size:', sizeError);
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Failed to validate file size. Please ensure the image is a valid base64 encoded image." 
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+      return errorResponse(
+        400,
+        "INVALID_FORMAT",
+        "Text extraction failed",
+        "Failed to validate file size. Please ensure the image is a valid base64 encoded image."
       );
     }
 
@@ -121,7 +109,6 @@ serve(async (req) => {
     console.log('[extract-ocr] Processing image, fileType:', fileType, 'hasDataPrefix:', base64ToSend.includes(','));
 
     // Create FormData - OCR.space API requires multipart/form-data
-    // OCR.space expects the full data URL format (data:image/...;base64,...)
     const formData = new FormData();
     formData.append('base64Image', base64ToSend);
     formData.append('language', 'eng');
@@ -130,7 +117,7 @@ serve(async (req) => {
 
     console.log('[extract-ocr] Request prepared, fileType:', fileType, 'base64Length:', base64ToSend.length);
 
-    // Set timeout (30 seconds) - use Promise.race for Deno compatibility
+    // Set timeout (30 seconds)
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('OCR request timeout')), 30000);
     });
@@ -141,7 +128,6 @@ serve(async (req) => {
         method: 'POST',
         headers: {
           'apikey': ocrApiKey,
-          // Don't set Content-Type - let fetch set it automatically with boundary for FormData
         },
         body: formData,
       });
@@ -159,17 +145,13 @@ serve(async (req) => {
         console.error('[extract-ocr] OCR.space API HTTP error:', {
           status: response.status,
           statusText: response.statusText,
-          errorText: errorText.substring(0, 500), // Limit error text length
+          errorText: errorText.substring(0, 500),
         });
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: `OCR API HTTP error: ${response.status} - ${errorText.substring(0, 200)}`,
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+        return errorResponse(
+          500,
+          "OCR_API_ERROR",
+          "Text extraction failed",
+          `OCR API error: ${response.status} - ${errorText.substring(0, 200)}`
         );
       }
 
@@ -185,58 +167,31 @@ serve(async (req) => {
           }
         }
         console.error('[extract-ocr] API error:', errorMsg);
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: errorMsg,
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+        return errorResponse(
+          500,
+          "OCR_PROCESSING_ERROR",
+          "Text extraction failed",
+          errorMsg
         );
       }
 
       if (!data.ParsedResults || data.ParsedResults.length === 0) {
-        return new Response(
-          JSON.stringify({
-            success: true,
-            ocrText: '',
-          }),
-          {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return successResponse({ ocrText: '' });
       }
 
       const ocrText = data.ParsedResults[0]?.ParsedText?.trim() || '';
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          ocrText,
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return successResponse({ ocrText });
     } catch (error: any) {
       if (error.message === 'OCR request timeout' || error.name === 'AbortError') {
         console.error('[extract-ocr] Request timeout after 30 seconds');
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'OCR request timeout - the image may be too large or the API is slow',
-          }),
-          {
-            status: 504,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+        return errorResponse(
+          504,
+          "TIMEOUT",
+          "Text extraction failed",
+          "OCR request timeout - the image may be too large or the API is slow."
         );
       }
-      // Log the actual error for debugging
       console.error('[extract-ocr] Unexpected error in OCR API call:', {
         message: error?.message,
         name: error?.name,
@@ -245,7 +200,6 @@ serve(async (req) => {
       throw error;
     }
   } catch (error: any) {
-    // Log detailed error information
     console.error('[extract-ocr] Error details:', {
       message: error?.message,
       name: error?.name,
@@ -253,17 +207,11 @@ serve(async (req) => {
       cause: error?.cause,
     });
     
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error?.message || "Internal server error",
-        details: process.env.NODE_ENV === 'development' ? error?.stack : undefined,
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    return errorResponse(
+      500,
+      "INTERNAL_ERROR",
+      "Text extraction failed",
+      error?.message || "An unexpected error occurred. Please try again."
     );
   }
 });
-
