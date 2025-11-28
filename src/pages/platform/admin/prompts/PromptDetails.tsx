@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { ErrorEmpty } from "@/components/ErrorEmpty";
 import { PromptDetailsSkeleton } from "@/components/skeletons/PromptDetailsSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePrompt } from "@/hooks/prompts/usePrompt";
+import { usePrompt } from "./hooks/usePrompt";
 import { useFormattedDate } from "@/hooks/formatting/useFormattedDate";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PromptEditForm } from "@/components/prompts/PromptEditForm";
 import { useCategories } from "@/hooks/other/useCategories";
-import { useUpdatePrompt } from "@/hooks/prompts/useUpdatePrompt";
+import { useUpdatePrompt } from "./hooks/useUpdatePrompt";
 
 const PromptDetails = () => {
   const { id } = useParams<{ id: string }>();

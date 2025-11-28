@@ -8,7 +8,7 @@ import { RequestDetailsSkeleton } from "@/components/skeletons/RequestDetailsSke
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRequest } from "@/hooks/requests/useRequest";
 import { useFormattedDate } from "@/hooks/formatting/useFormattedDate";
-import { useSignedImageUrls } from "@/hooks/screenshots/useSignedImageUrls";
+import { useSignedImageUrls } from "./hooks/useSignedImageUrls";
 import { FeedbackBanner } from "@/components/features/FeedbackBanner";
 import { ChatMessage } from "@/components/features/ChatMessage";
 import { ConversationMessage } from "@/components/features/ConversationView";

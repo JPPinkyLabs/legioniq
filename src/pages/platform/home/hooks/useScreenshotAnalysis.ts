@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useOCR } from "../other/useOCR";
+import { useOCR } from "./useOCR";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import { supabase } from "@/integrations/supabase/client";
@@ -204,3 +204,4 @@ export const useScreenshotAnalysis = () => {
     resetAnalysis,
   };
 };
+

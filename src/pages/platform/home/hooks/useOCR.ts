@@ -45,3 +45,4 @@ export const useOCR = () => {
     error: mutation.error,
   };
 };
+

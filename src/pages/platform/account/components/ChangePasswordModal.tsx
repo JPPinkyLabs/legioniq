@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Lock, Eye, EyeOff } from "lucide-react";
-import { useChangePassword } from "@/hooks/account/useChangePassword";
+import { useChangePassword } from "../hooks/useChangePassword";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ResponsiveModal } from "@/components/ui/responsive-modal";

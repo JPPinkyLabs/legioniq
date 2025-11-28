@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { AnalysisOverlay } from "@/components/features/analysis-overlay";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { useHome } from "@/hooks/home/useHome";
+import { useHome } from "./hooks/useHome";
 import { useState } from "react";
 
 const Home = () => {

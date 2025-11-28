@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ErrorEmpty } from "@/components/ErrorEmpty";
-import { usePrompts } from "@/hooks/prompts/usePrompts";
+import { usePrompts } from "./hooks/usePrompts";
 import { PromptList } from "@/components/prompts/PromptList";
 import { PromptListSkeleton } from "@/components/skeletons/PromptListSkeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";

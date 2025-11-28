@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { useDailyLimitValidation } from "../usage/useDailyLimitValidation";
+import { useDailyLimitValidation } from "@/hooks/usage/useDailyLimitValidation";
 
 interface UseScreenshotSendProps {
   screenshots: string[];

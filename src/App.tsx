@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SettingsModalProvider, useSettingsModal } from "@/contexts/SettingsModalContext";
 import { SettingsModal } from "@/components/modals/SettingsModal";
 import { Analytics } from "@vercel/analytics/react";
-import Home from "./pages/platform/Home";
+import Home from "./pages/platform/home/Home";
 import Account from "./pages/platform/account/Account";
 import Usage from "./pages/platform/usage/Usage";
 import Privacy from "./pages/Privacy";

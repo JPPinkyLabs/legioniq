@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
-import { useScreenshotUpload } from "@/hooks/screenshots/useScreenshotUpload";
+import { useScreenshotUpload } from "./useScreenshotUpload";
 import { useDailyUsage } from "@/hooks/usage/useDailyUsage";
 import { useDailyLimitValidation } from "@/hooks/usage/useDailyLimitValidation";
-import { useScreenshotAnalysis2 } from "@/hooks/screenshots/useScreenshotAnalysis2";
+import { useScreenshotAnalysis2 } from "./useScreenshotAnalysis2";
 import { useTypingEffect } from "@/hooks/other/useTypingEffect";
 import { type CategoryData } from "@/hooks/other/useCategories";
 import type { CategoryAdvice } from "@/hooks/other/useCategoryAdvices";
