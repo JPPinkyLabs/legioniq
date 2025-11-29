@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SettingsModalProvider, useSettingsModal } from "@/contexts/SettingsModalContext";
 import { SettingsModal } from "@/components/modals/SettingsModal";
 import { Analytics } from "@vercel/analytics/react";
+import { useNProgress } from "@/hooks/other/useNProgress";
 import Home from "./pages/platform/home/Home";
 import Account from "./pages/platform/account/Account";
 import Usage from "./pages/platform/usage/Usage";
@@ -25,11 +26,17 @@ import Landing from "./pages/landing/Landing";
 
 const queryClient = new QueryClient();
 
+const NProgressHandler = () => {
+  useNProgress();
+  return null;
+};
+
 const AppContent = () => {
   const { isOpen, closeModal } = useSettingsModal();
 
   return (
     <BrowserRouter>
+      <NProgressHandler />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route 
