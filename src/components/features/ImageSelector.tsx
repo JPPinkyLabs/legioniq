@@ -21,14 +21,14 @@ const ImageCard = ({
       />
       <button
         type="button"
-        className="absolute top-0.5 right-0.5 md:top-1 md:right-1 p-0.5 md:p-1 rounded-full bg-destructive/90 hover:bg-destructive text-destructive-foreground shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-1 right-1 p-1 rounded-full bg-destructive/90 hover:bg-destructive text-destructive-foreground shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
         aria-label={`Remove image ${index + 1}`}
         onClick={(e) => {
           e.stopPropagation();
           onRemove();
         }}
       >
-        <X className="w-3 h-3 md:w-3 md:h-3" />
+        <X className="w-3 h-3" />
       </button>
     </div>
   );
@@ -48,7 +48,7 @@ const EmptyImageCard = ({
       disabled={disabled}
       className="w-20 h-20 rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-accent/50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
     >
-      <Plus className="h-4 w-4 md:h-4 md:w-4 text-muted-foreground" />
+      <Plus className="h-4 w-4 text-muted-foreground" />
     </button>
   );
 };
@@ -94,18 +94,18 @@ export const ImageSelector = ({
   });
 
   return (
-    <div className="space-y-2 md:space-y-3">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm md:text-sm font-medium">Images</h3>
+        <h3 className="text-sm font-medium">Images</h3>
         {screenshots.length > 0 && (
-          <span className="text-xs md:text-sm text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {screenshots.length}/{MAX_IMAGES}
           </span>
         )}
       </div>
 
       {/* Cards de Imagem - Sempre 5 cards lado a lado */}
-      <div className="flex flex-wrap gap-1.5 md:gap-2">
+      <div className="flex flex-wrap gap-2">
         {imageSlots.map((slot, index) => {
           if (slot.type === "image") {
             return (
@@ -145,7 +145,7 @@ export const ImageSelector = ({
       />
 
       {!canAddMoreImages && screenshots.length < MAX_IMAGES && isDailyUsageReady && (
-        <p className="text-xs md:text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           {dailyLimitExceeded || remainingAfterSelection === 0
             ? "Daily image limit reached"
             : `You can add ${remainingAfterSelection} more image${remainingAfterSelection !== 1 ? "s" : ""} today`}

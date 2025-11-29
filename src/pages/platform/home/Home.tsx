@@ -85,10 +85,10 @@ const Home = () => {
       <div className="md:hidden h-full flex flex-col">
         <div className="p-4 space-y-4 flex-1">
           <div className="space-y-2">
-            <h1 className="text-2xl md:text-4xl font-semibold text-foreground">
+            <h1 className="text-4xl font-semibold text-foreground">
               Upload your screenshots
             </h1>
-            <p className="text-muted-foreground text-sm md:text-base">
+            <p className="text-muted-foreground text-base">
               Upload your game screenshots, select a category and advice type, and LegionIQ will analyze them using AI to provide you with detailed insights, gameplay tips, technical support, or strategic advice tailored to your needs.
             </p>
           </div>
@@ -120,10 +120,10 @@ const Home = () => {
             <ScrollArea className="h-full w-full">
               <div className="p-6 md:p-8 space-y-6">
                 <div className="space-y-3">
-                  <h1 className="text-3xl md:text-4xl font-semibold text-foreground">
+                  <h1 className="text-4xl font-semibold text-foreground">
                     Upload your screenshots
                   </h1>
-                  <p className="text-muted-foreground text-sm md:text-base">
+                  <p className="text-muted-foreground text-base">
                     Upload your game screenshots, select a category and advice type, and LegionIQ will analyze them using AI to provide you with detailed insights, gameplay tips, technical support, or strategic advice tailored to your needs.
                   </p>
                 </div>
@@ -164,10 +164,10 @@ const Home = () => {
               <ScrollArea className="h-full w-full">
                 <div className="p-6 md:p-8 space-y-6">
                   <div className="space-y-3">
-                    <h1 className="text-3xl md:text-4xl font-semibold text-foreground">
+                    <h1 className="text-4xl font-semibold text-foreground">
                       Upload your screenshots
                     </h1>
-                    <p className="text-muted-foreground text-sm md:text-base">
+                    <p className="text-muted-foreground text-base">
                       Upload your game screenshots, select a category and advice type, and LegionIQ will analyze them using AI to provide you with detailed insights, gameplay tips, technical support, or strategic advice tailored to your needs.
                     </p>
                   </div>

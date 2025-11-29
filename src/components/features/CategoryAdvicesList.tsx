@@ -17,7 +17,7 @@ const AdviceBadge = ({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 md:gap-2 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border text-xs md:text-xs font-medium transition-all shrink-0",
+        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all shrink-0",
         isSelected
           ? "border-primary bg-primary/10 text-primary"
           : "border-border bg-background hover:bg-accent text-foreground"
@@ -46,17 +46,17 @@ export const CategoryAdvicesList = ({
   });
 
   return (
-    <div className="space-y-2 md:space-y-3">
-      <h3 className="text-sm md:text-sm font-medium">Advice Types</h3>
+    <div className="space-y-3">
+      <h3 className="text-sm font-medium">Advice Types</h3>
       {!selectedCategoryId ? (
-        <p className="text-xs md:text-sm text-muted-foreground">Select category first</p>
+        <p className="text-sm text-muted-foreground">Select category first</p>
       ) : isLoading ? (
         <CategoryAdvicesSkeleton />
       ) : advices.length === 0 ? (
-        <p className="text-xs md:text-sm text-muted-foreground">No advice types available</p>
+        <p className="text-sm text-muted-foreground">No advice types available</p>
       ) : (
         <>
-          <div className="flex flex-wrap gap-1.5 md:gap-2">
+          <div className="flex flex-wrap gap-2">
             {advices.map((advice) => (
               <AdviceBadge
                 key={advice.id}
@@ -67,7 +67,7 @@ export const CategoryAdvicesList = ({
             ))}
           </div>
           {selectedAdvice && (
-            <p className="text-xs md:text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {selectedAdvice.description}
             </p>
           )}
