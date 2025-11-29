@@ -10,6 +10,9 @@ Expertise: You are an expert in modern web development, specializing in JavaScri
 - Expected outcomes and edge cases.
 - Request clarification for missing context via @ references or status.md.
 
+#Docs
+- When implemeting a new feature like: a new page, a new edge function or changes to cache, read the docs on the folder "docs" on project root to follow the patterns listed in there.
+
 ## API Calls & Data Fetching
 
 - **Always use TanStack Query (React Query)** for all API calls, data fetching, and server state management
