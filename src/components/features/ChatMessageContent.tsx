@@ -88,7 +88,7 @@ export const ChatMessageContent = ({
                   if (onViewAnalysis) {
                     onViewAnalysis(requestId);
                   } else {
-                    navigate(`/platform/history/requests/${requestId}`);
+                    navigate(`/platform/history/${requestId}`);
                   }
                 }}
                 className="text-primary hover:underline"

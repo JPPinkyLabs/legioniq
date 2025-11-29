@@ -88,7 +88,7 @@ const AppContent = () => {
           } 
         />
         <Route 
-          path="/platform/history/requests/:id" 
+          path="/platform/history/:id" 
           element={
             <PrivateRoute>
               <AuthenticatedLayout>

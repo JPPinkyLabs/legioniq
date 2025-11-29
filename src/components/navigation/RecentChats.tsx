@@ -32,7 +32,7 @@ const ChatItem = ({ title, requestId }: ChatItemProps) => {
     <SidebarMenuItem>
       <SidebarMenuButton asChild>
         <NavLink
-          to={`/platform/history/requests/${requestId}`}
+          to={`/platform/history/${requestId}`}
           activeClassName="bg-gray-200 dark:bg-[hsl(0,0%,8%)] text-foreground font-medium"
           className="w-full justify-start h-auto py-2 px-2 hover:bg-gray-200 dark:hover:bg-[hsl(0,0%,8%)] hover:text-foreground transition-colors overflow-hidden"
           onClick={handleLinkClick}

@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/navigation/AppSidebar";
+import { AppBreadcrumb } from "@/components/navigation/AppBreadcrumb";
 import { useOnboardingStatus } from "@/hooks/auth/useOnboardingStatus";
 import { OnboardingOverlay } from "@/components/onboarding/OnboardingOverlay";
+import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 
 interface AuthenticatedLayoutProps {
@@ -57,6 +59,10 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
           <header className="border-b border-border/50 backdrop-blur-sm sticky top-0 z-40 bg-background/80 flex-shrink-0">
             <div className="flex items-center gap-2 px-4 py-3">
               <SidebarTrigger />
+              <Separator orientation="vertical" className="h-4 hidden md:block" />
+              <div className="hidden md:block">
+                <AppBreadcrumb />
+              </div>
             </div>
           </header>
 

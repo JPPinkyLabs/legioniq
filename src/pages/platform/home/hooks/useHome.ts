@@ -173,7 +173,7 @@ export function useHome() {
 
   const handleViewFullAnalysis = () => {
     if (currentRequestId) {
-      window.open(`/platform/history/requests/${currentRequestId}`, '_blank');
+      window.open(`/platform/history/${currentRequestId}`, '_blank');
     }
   };
 
