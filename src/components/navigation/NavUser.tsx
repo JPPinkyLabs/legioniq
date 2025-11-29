@@ -4,6 +4,8 @@ import {
   LogOut,
   User,
   Settings,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 import {
@@ -20,6 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getInitials } from "@/hooks/auth/useUserUtils";
 import { useAvatarUrl } from "@/hooks/avatar/useAvatarUrl";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface NavUserProps {
   user: {
@@ -35,6 +38,7 @@ interface NavUserProps {
 export function NavUser({ user, onLogout, onNavigate, onOpenSettings }: NavUserProps) {
   const { isMobile, setOpenMobile, state } = useSidebar();
   const { avatarUrl, handleImageError } = useAvatarUrl();
+  const { theme, toggleTheme } = useTheme();
 
   const handleNavigate = (path: string) => {
     onNavigate(path);
@@ -99,6 +103,11 @@ export function NavUser({ user, onLogout, onNavigate, onOpenSettings }: NavUserP
               label: "Settings",
               icon: <Settings className="h-4 w-4" />,
               onClick: handleOpenSettings,
+            },
+            {
+              label: theme === "dark" ? "Light Mode" : "Dark Mode",
+              icon: theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />,
+              onClick: toggleTheme,
               separator: true,
             },
             {
