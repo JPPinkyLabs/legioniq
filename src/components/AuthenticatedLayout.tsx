@@ -5,7 +5,9 @@ import { AppBreadcrumb } from "@/components/navigation/AppBreadcrumb";
 import { useOnboardingStatus } from "@/hooks/auth/useOnboardingStatus";
 import { OnboardingOverlay } from "@/components/onboarding/OnboardingOverlay";
 import { Separator } from "@/components/ui/separator";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Loader2, Sun, Moon } from "lucide-react";
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
@@ -13,6 +15,7 @@ interface AuthenticatedLayoutProps {
 
 const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
   const { hasCompletedOnboarding, isLoading } = useOnboardingStatus();
+  const { theme, toggleTheme } = useTheme();
   const [showOnboardingOverlay, setShowOnboardingOverlay] = useState(false);
   const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
 
@@ -57,12 +60,27 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
 
         <div className="flex flex-col flex-1 w-full min-w-0 overflow-hidden">
           <header className="border-b border-border/50 backdrop-blur-sm sticky top-0 z-40 bg-background/80 flex-shrink-0">
-            <div className="flex items-center gap-2 px-4 py-3">
-              <SidebarTrigger />
-              <Separator orientation="vertical" className="h-4 hidden md:block" />
-              <div className="hidden md:block">
-                <AppBreadcrumb />
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <Separator orientation="vertical" className="h-4 hidden md:block" />
+                <div className="hidden md:block">
+                  <AppBreadcrumb />
+                </div>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="h-8 w-8"
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+                <span className="sr-only">Toggle theme</span>
+              </Button>
             </div>
           </header>
 
