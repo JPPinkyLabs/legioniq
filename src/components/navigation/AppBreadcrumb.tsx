@@ -22,6 +22,15 @@ const routeLabels: Record<string, string> = {
   prompts: "Prompts",
 };
 
+// Routes that exist and can be navigated to
+const validRoutes = new Set([
+  "/platform",
+  "/platform/history",
+  "/platform/usage",
+  "/platform/account",
+  "/admin/prompts",
+]);
+
 function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   const segments = pathname.split("/").filter(Boolean);
   const breadcrumbs: BreadcrumbSegment[] = [];
@@ -51,10 +60,13 @@ function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
     } else {
       const label = routeLabels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
       const isLast = i === segments.length - 1;
+      
+      // Only make it clickable if the route exists and it's not the last segment
+      const shouldBeClickable = !isLast && validRoutes.has(currentPath);
 
       breadcrumbs.push({
         label,
-        href: isLast ? undefined : currentPath,
+        href: shouldBeClickable ? currentPath : undefined,
       });
     }
   }
