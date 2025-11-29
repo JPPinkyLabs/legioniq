@@ -117,6 +117,18 @@ Geist typography from Vercel theme
     background-attachment: fixed;
     min-height: 100vh;
   }
+
+  .bg-gradient-history {
+    background-color: hsl(var(--background));
+  }
+
+  .dark .bg-gradient-history {
+    background: 
+      radial-gradient(ellipse at top left, hsl(45, 15%, 7%) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, hsl(45, 10%, 6%) 0%, transparent 50%),
+      hsl(0, 0%, 5%);
+    background-attachment: fixed;
+  }
 }
 
 @keyframes ai-thinking {

@@ -63,7 +63,7 @@ const Home = () => {
   const showResizeFeedback = isResizing || isHoveringResizeHandle;
 
   return (
-    <div className="h-full w-full md:overflow-hidden">
+    <div className="h-full w-full md:overflow-hidden bg-gradient-history">
       {/* Analysis Overlay for Mobile/Tablet Column Layout */}
       {shouldShowOverlay && (
         <AnalysisOverlay
@@ -83,7 +83,7 @@ const Home = () => {
 
       {/* Mobile: Stacked layout */}
       <div className="md:hidden h-full flex flex-col">
-        <div className="p-4 space-y-4 dark:bg-black flex-1">
+        <div className="p-4 space-y-4 flex-1">
           <div className="space-y-2">
             <h1 className="text-2xl md:text-4xl font-semibold text-foreground">
               Upload your screenshots
@@ -113,7 +113,7 @@ const Home = () => {
       </div>
 
       {/* Desktop: Integrated layout - Editor left, Preview right - Visible from 768px+ */}
-      <div className="hidden md:block h-screen dark:bg-black rounded-lg p-2">
+      <div className="hidden md:block h-screen rounded-lg p-2">
         {isColumnLayout ? (
           // Single column layout for screens <= 980px
           <div className="flex flex-col overflow-hidden" style={{ height: 'calc(100vh - 1rem)' }}>
