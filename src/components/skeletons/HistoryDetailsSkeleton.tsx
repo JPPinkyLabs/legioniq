@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileText, Image as ImageIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/other/use-mobile";
 
-export const RequestDetailsSkeleton = () => {
+export const HistoryDetailsSkeleton = () => {
   const isMobile = useIsMobile();
 
   return (

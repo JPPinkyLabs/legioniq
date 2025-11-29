@@ -4,7 +4,7 @@ import { ArrowLeft, AlertCircle, Image as ImageIcon, FileText } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ErrorEmpty } from "@/components/ErrorEmpty";
-import { RequestDetailsSkeleton } from "@/components/skeletons/RequestDetailsSkeleton";
+import { HistoryDetailsSkeleton } from "@/components/skeletons/HistoryDetailsSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRequest } from "@/hooks/requests/useRequest";
 import { useFormattedDate } from "@/hooks/formatting/useFormattedDate";
@@ -23,7 +23,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/other/use-mobile";
 import { getCategoryColorClasses } from "@/lib/category-colors";
 
-const RequestDetails = () => {
+const Details = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { request, isLoading, error, refetch } = useRequest(id);
@@ -134,7 +134,7 @@ const RequestDetails = () => {
         </div>
 
         {isLoading ? (
-          <RequestDetailsSkeleton />
+          <HistoryDetailsSkeleton />
         ) : error ? (
           <ErrorEmpty
             icon={AlertCircle}
@@ -337,5 +337,5 @@ const RequestDetails = () => {
   );
 };
 
-export default RequestDetails;
+export default Details;
 

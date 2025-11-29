@@ -14,7 +14,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import History from "./pages/platform/history/History";
-import RequestDetails from "./pages/platform/history/RequestDetails";
+import Details from "./pages/platform/history/Details";
 import Prompts from "./pages/platform/admin/prompts/Prompts";
 import PromptDetails from "./pages/platform/admin/prompts/PromptDetails";
 import PrivateRoute from "./components/routes/PrivateRoute";
@@ -92,7 +92,7 @@ const AppContent = () => {
           element={
             <PrivateRoute>
               <AuthenticatedLayout>
-                <RequestDetails />
+                <Details />
               </AuthenticatedLayout>
             </PrivateRoute>
           } 

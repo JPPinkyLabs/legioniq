@@ -16,7 +16,7 @@ export interface ChatMessageContentProps {
   onViewAnalysis?: (requestId: string) => void;
   onTypingComplete?: (complete: boolean) => void;
   skipTypingEffect?: boolean; // When true, show full content immediately without typing effect
-  hideActions?: boolean; // When true, hide ChatActions and ChatRating (for detail pages like RequestDetails2)
+  hideActions?: boolean; // When true, hide ChatActions and ChatRating (for detail pages like Details)
 }
 
 
