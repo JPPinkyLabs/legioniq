@@ -308,10 +308,10 @@ import { ArrowLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RequestDetailsSkeleton } from "@/components/skeletons/RequestDetails2Skeleton";
+import { HistoryDetailsSkeleton } from "@/components/skeletons/HistoryDetailsSkeleton";
 import { ErrorEmpty } from "@/components/ErrorEmpty";
 
-const RequestDetails = () => {
+const Details = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { request, isLoading, error, refetch } = useRequest(id);
@@ -366,7 +366,7 @@ const RequestDetails = () => {
 
         {/* Conditional content - Follow exact order */}
         {isLoading ? (
-          <RequestDetailsSkeleton />
+          <HistoryDetailsSkeleton />
         ) : error ? (
           <ErrorEmpty
             icon={AlertCircle}

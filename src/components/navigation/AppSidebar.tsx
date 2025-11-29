@@ -49,7 +49,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const recentChatIds = useRecentChatIds();
 
   // Check if current route is a request detail page
-  const requestDetailMatch = location.pathname.match(/^\/platform\/history\/requests\/(.+)$/);
+  const requestDetailMatch = location.pathname.match(/^\/platform\/history\/(.+)$/);
   const currentRequestId = requestDetailMatch ? requestDetailMatch[1] : null;
   
   // History is active if:

@@ -46,7 +46,7 @@ export const Step1Upload = ({
 
   return (
     <div className="w-full">
-      <div className="flex flex-col gap-4 md:gap-6">
+      <div className="flex flex-col gap-6">
         <ImageSelector
           screenshots={screenshots}
           onRemoveScreenshot={onRemoveScreenshot}
@@ -80,19 +80,19 @@ export const Step1Upload = ({
         )}
 
         {dailyLimitExceeded && (
-          <div className="flex items-center gap-2 p-2 md:p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-xs md:text-sm">
-            <AlertCircle className="h-3 w-3 md:h-4 md:w-4 shrink-0" />
+          <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <span>Daily limit reached. Please try again tomorrow.</span>
           </div>
         )}
 
         <Button
-          className="w-full h-9 md:h-10 text-sm md:text-base"
+          className="w-full h-10 text-base"
           size="default"
           disabled={!canGenerate || loading || dailyLimitExceeded || !canMakeRequest}
           onClick={onGenerate}
         >
-          <Sparkles className="h-4 w-4 md:h-4 md:w-4" />
+          <Sparkles className="h-4 w-4" />
           <span>Generate analysis</span>
         </Button>
       </div>

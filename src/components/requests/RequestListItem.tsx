@@ -42,7 +42,7 @@ export const RequestListItem = ({ request, isLast = false }: RequestListItemProp
   const title = categoryLabel;
 
   const handleClick = () => {
-    navigate(`/platform/history/requests/${request.id}`);
+    navigate(`/platform/history/${request.id}`);
   };
 
   return (

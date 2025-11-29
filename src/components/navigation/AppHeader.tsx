@@ -1,6 +1,5 @@
 import legionLogo from "@/assets/legioniq-logo.png";
 import legionLogoGolden from "@/assets/legionIQ_logo_golden.png";
-import packageJson from "../../../package.json";
 import { useTheme } from "@/contexts/ThemeContext";
 
 import {
@@ -25,8 +24,8 @@ export function AppHeader() {
             />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium">LegionIQ v{packageJson.version}</span>
-            <span className="truncate text-xs">
+            <span className="truncate font-medium">LegionIQ</span>
+            <span className="truncate text-[10px] leading-tight">
               ©{' '}
               <a
                 href="https://pinkylabs.io"

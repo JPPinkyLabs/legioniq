@@ -64,8 +64,7 @@ export const DailyUsageDisplay = ({ compact = false, className }: DailyUsageDisp
           </div>
           {isUnlimited ? (
             <Badge variant="default" className="text-xs">
-              <Infinity className="h-3 w-3 mr-1 badge-icon" />
-              Unlimited
+              <Infinity className="h-3 w-3 badge-icon" />
             </Badge>
           ) : (
             <Badge variant={getStatusColor()} className="text-xs">

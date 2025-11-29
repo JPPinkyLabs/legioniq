@@ -25,14 +25,14 @@ const CategoryBadge = ({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 md:gap-2 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full border text-xs md:text-xs font-medium transition-all shrink-0",
+        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all shrink-0",
         isSelected
           ? "border-primary bg-primary/10 text-primary"
           : "border-border bg-background hover:bg-accent text-foreground"
       )}
       title={category.description}
     >
-      <Icon className="h-3.5 w-3.5 md:h-3.5 md:w-3.5 shrink-0" />
+      <Icon className="h-3.5 w-3.5 shrink-0" />
       <span>{category.label}</span>
     </button>
   );
@@ -54,9 +54,9 @@ export const CategorySelector = ({
   }
 
   return (
-    <div className="space-y-2 md:space-y-3">
-      <h3 className="text-sm md:text-sm font-medium">Category</h3>
-      <div className="flex flex-wrap gap-1.5 md:gap-2">
+    <div className="space-y-3">
+      <h3 className="text-sm font-medium">Category</h3>
+      <div className="flex flex-wrap gap-2">
         {categories.map((category) => (
           <CategoryBadge
             key={category.id}

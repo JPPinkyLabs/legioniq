@@ -25,7 +25,7 @@ export const RequestCard = ({ request }: RequestCardProps) => {
   const categoryColor = getCategoryColorClasses(request.category?.color);
 
   const handleClick = () => {
-    navigate(`/platform/history/requests/${request.id}`);
+    navigate(`/platform/history/${request.id}`);
   };
 
   return (
