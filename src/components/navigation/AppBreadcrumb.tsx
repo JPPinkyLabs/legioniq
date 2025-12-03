@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Breadcrumb,
@@ -20,6 +21,7 @@ const routeLabels: Record<string, string> = {
   account: "Account",
   admin: "Admin",
   prompts: "Prompts",
+  requests: "Requests",
 };
 
 // Routes that exist and can be navigated to
@@ -29,6 +31,7 @@ const validRoutes = new Set([
   "/platform/usage",
   "/platform/account",
   "/admin/prompts",
+  "/admin/requests",
 ]);
 
 function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
@@ -55,14 +58,17 @@ function getBreadcrumbs(pathname: string): BreadcrumbSegment[] {
     const isId = /^[0-9a-f-]{36}$/.test(segment) || /^\d+$/.test(segment);
 
     if (isId) {
-      // For IDs, show "Details" as the label
+      // For IDs, show "Details" as the label (not clickable)
       breadcrumbs.push({ label: "Details" });
     } else {
       const label = routeLabels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
       const isLast = i === segments.length - 1;
       
-      // Only make it clickable if the route exists and it's not the last segment
-      const shouldBeClickable = !isLast && validRoutes.has(currentPath);
+      // Make it clickable if:
+      // 1. The route exists in validRoutes, OR
+      // 2. It's not the last segment and the next segment is an ID (dynamic route)
+      const nextSegmentIsId = i + 1 < segments.length && /^[0-9a-f-]{36}$/.test(segments[i + 1]);
+      const shouldBeClickable = validRoutes.has(currentPath) || (!isLast && nextSegmentIsId);
 
       breadcrumbs.push({
         label,
@@ -89,16 +95,18 @@ export function AppBreadcrumb() {
           const isLast = index === breadcrumbs.length - 1;
 
           return (
-            <BreadcrumbItem key={`${crumb.label}-${index}`} className="gap-1.5">
+            <React.Fragment key={`${crumb.label}-${index}`}>
               {index > 0 && <BreadcrumbSeparator className="mr-0" />}
-              {isLast || !crumb.href ? (
-                <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-              ) : (
-                <BreadcrumbLink asChild>
-                  <Link to={crumb.href}>{crumb.label}</Link>
-                </BreadcrumbLink>
-              )}
-            </BreadcrumbItem>
+              <BreadcrumbItem className="gap-1.5">
+                {isLast || !crumb.href ? (
+                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link to={crumb.href}>{crumb.label}</Link>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            </React.Fragment>
           );
         })}
       </BreadcrumbList>
