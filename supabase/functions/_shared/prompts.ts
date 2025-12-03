@@ -78,11 +78,11 @@ export async function formatUserPreferences(
   const questionKeys = preferences.map(p => p.question_key);
   const { data: questions, error: questionsError } = await supabaseAdmin
     .from("preference_questions")
-    .select("question_key, question_text, question_type, options")
+    .select("question_key, options")
     .in("question_key", questionKeys);
   
   if (questionsError) {
-    console.warn("[preferences] Error fetching question texts (non-fatal):", questionsError);
+    console.warn("[preferences] Error fetching question options (non-fatal):", questionsError);
   }
   
   const questionsMap = new Map();
@@ -90,11 +90,11 @@ export async function formatUserPreferences(
     questions.forEach(q => questionsMap.set(q.question_key, q));
   }
   
-  let formatted = "\n\nUser Gaming Profile:\n";
+  let formatted = "";
   
   for (const pref of preferences) {
     const question = questionsMap.get(pref.question_key);
-    const questionText = question?.question_text || pref.question_key;
+    const questionKey = pref.question_key;
     
     let answerText = "";
     
@@ -120,7 +120,7 @@ export async function formatUserPreferences(
     }
     
     if (answerText) {
-      formatted += `- ${questionText}: ${answerText}\n`;
+      formatted += `${questionKey}: ${answerText}\n`;
     }
   }
   
@@ -158,32 +158,28 @@ export async function buildUserPrompt(
   userId: string,
   imageCount: number
 ): Promise<string> {
-  let prompt = "";
-  
   const advice = await getAdviceFromId(supabaseAdmin, adviceId);
   const preferences = await getUserPreferences(supabaseAdmin, userId);
   const preferencesText = await formatUserPreferences(supabaseAdmin, preferences);
   
-  prompt += `Advice Type: ${advice.name}\n`;
-  prompt += `Advice Description: ${advice.description}\n\n`;
+  let prompt = `I need an analysis on ${advice.name.toLowerCase()}. ${advice.description}`;
   
-  if (preferencesText) {
-    prompt += preferencesText + "\n";
+  if (preferencesText && preferencesText.trim().length > 0) {
+    prompt += `\n\nConsidering my gaming profile:\n${preferencesText}`;
   }
   
   if (ocrText && ocrText.trim().length > 0) {
-    if (imageCount > 1) {
-      prompt += `Here is the text extracted from ${imageCount} game screenshots:\n\n${ocrText}\n\n`;
-    } else {
-      prompt += `Here is the text extracted from a game screenshot:\n\n${ocrText}\n\n`;
-    }
-    prompt += "Please analyze this and provide helpful recommendations.";
+    const imageText = imageCount > 1 
+      ? `text extracted from ${imageCount} game screenshots` 
+      : `text extracted from a game screenshot`;
+    
+    prompt += `\n\nBelow is the ${imageText} related to this ${advice.name.toLowerCase()} analysis:\n\n${ocrText}\n\nPlease analyze all this data and provide helpful recommendations considering the game context, my gaming profile, and the information extracted from the images.`;
   } else {
-    if (imageCount > 1) {
-      prompt += `I'm analyzing ${imageCount} game screenshots, but no readable text was extracted from them. Please provide general recommendations based on the ${categoryLabel} category and what you might typically see in game screenshots.`;
-    } else {
-      prompt += `I'm analyzing a game screenshot, but no readable text was extracted from it. Please provide general recommendations based on the ${categoryLabel} category and what you might typically see in game screenshots.`;
-    }
+    const imageText = imageCount > 1 
+      ? `${imageCount} game screenshots` 
+      : `a game screenshot`;
+    
+    prompt += `\n\nI'm analyzing ${imageText} related to ${advice.name.toLowerCase()}, but no readable text could be extracted. Please provide general recommendations based on the ${categoryLabel} category and what you would typically see in game screenshots related to this type of analysis.`;
   }
   
   return prompt;
