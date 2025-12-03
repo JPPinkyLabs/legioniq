@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertCircle, Image as ImageIcon, FileText, User, Info } from "lucide-react";
+import { ArrowLeft, AlertCircle, Image as ImageIcon, FileText, User, Info, MessagesSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ErrorEmpty } from "@/components/ErrorEmpty";
@@ -200,7 +200,7 @@ const RequestDetails = () => {
                     value="response" 
                     className={`${isMobile ? 'flex-col items-center justify-center gap-1 h-auto py-2 min-h-[60px]' : 'w-full justify-start'} data-[state=active]:bg-background`}
                   >
-                    <FileText className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4 mr-2'}`} />
+                    <MessagesSquare className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4 mr-2'}`} />
                     <span className={isMobile ? 'text-xs' : ''}>Response</span>
                   </TabsTrigger>
                   <TabsTrigger 
@@ -266,26 +266,44 @@ const RequestDetails = () => {
                   </TabsContent>
 
                   <TabsContent value="prompt" className={`${isMobile ? 'mt-0 pt-6' : 'mt-0'} overflow-hidden`}>
-                    <ScrollArea className="h-full">
-                      <div className="w-full max-w-3xl mx-auto space-y-3 pb-[100px]">
-                        <h2 className="text-xl font-semibold">Prompt Sent to AI</h2>
+                    <div className="w-full max-w-3xl mx-auto space-y-3">
+                      <h2 className="text-xl font-semibold">Prompt Sent to AI</h2>
+                      <div className="h-72 border border-border rounded-lg overflow-hidden bg-muted/20">
                         {isLoadingPrompt ? (
-                          <div className="space-y-2">
-                            <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                            <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                            <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
-                          </div>
+                          <ScrollArea className="h-full">
+                            <div className="p-4 space-y-2">
+                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-4/5 bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-4/5 bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                            </div>
+                          </ScrollArea>
                         ) : prompt ? (
-                          <div className="rounded-lg border border-border bg-muted/20 p-4">
-                            <p className="text-sm text-foreground whitespace-pre-wrap break-words leading-relaxed">
-                              {prompt}
-                            </p>
-                          </div>
+                          <ScrollArea className="h-full">
+                            <div className="p-4">
+                              <p className="text-sm text-foreground whitespace-pre-wrap break-words leading-relaxed">
+                                {prompt}
+                              </p>
+                            </div>
+                          </ScrollArea>
                         ) : (
-                          <p className="text-sm text-muted-foreground">No prompt available.</p>
+                          <div className="p-4">
+                            <p className="text-sm text-muted-foreground">No prompt available.</p>
+                          </div>
                         )}
                       </div>
-                    </ScrollArea>
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="response" className={`${isMobile ? 'mt-0 pt-6' : 'mt-0'} overflow-hidden`}>
@@ -320,47 +338,68 @@ const RequestDetails = () => {
                     <ScrollArea className="h-full">
                       <div className="w-full max-w-3xl mx-auto space-y-3 pb-[100px]">
                         <h2 className="text-xl font-semibold">Attached Images</h2>
-                        {(isLoadingImages || signedUrls.length === 0 || imageLoadStates.length !== signedUrls.length || imageLoadStates.some(loaded => !loaded)) && imageUrls.length > 0 ? (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            {imageUrls.map((_, index) => (
-                              <div key={index} className="relative">
-                                <Skeleton 
-                                  className="h-64 w-full rounded-lg bg-muted-foreground/30" 
-                                />
-                                {signedUrls[index] && (
-                                  <img
-                                    src={signedUrls[index]}
-                                    alt={`Screenshot ${index + 1}`}
-                                    className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-200"
-                                    onLoad={(e) => {
-                                      setImageLoadStates(prev => {
-                                        const newStates = [...prev];
-                                        newStates[index] = true;
-                                        return newStates;
-                                      });
-                                      e.currentTarget.classList.remove('opacity-0');
-                                      e.currentTarget.classList.add('opacity-100');
-                                    }}
-                                  />
-                                )}
+                        {imageUrls.length > 0 ? (
+                          <>
+                            {(isLoadingImages || signedUrls.length === 0 || imageLoadStates.length !== signedUrls.length || imageLoadStates.some(loaded => !loaded)) ? (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {imageUrls.map((_, index) => (
+                                  <div key={index} className="relative">
+                                    <Skeleton 
+                                      className="h-64 w-full rounded-lg bg-muted-foreground/30" 
+                                    />
+                                    {signedUrls[index] && (
+                                      <img
+                                        src={signedUrls[index]}
+                                        alt={`Screenshot ${index + 1}`}
+                                        className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-200"
+                                        onLoad={(e) => {
+                                          setImageLoadStates(prev => {
+                                            const newStates = [...prev];
+                                            newStates[index] = true;
+                                            return newStates;
+                                          });
+                                          e.currentTarget.classList.remove('opacity-0');
+                                          e.currentTarget.classList.add('opacity-100');
+                                        }}
+                                        onError={() => {
+                                          // Handle image load errors silently
+                                          setImageLoadStates(prev => {
+                                            const newStates = [...prev];
+                                            newStates[index] = true; // Mark as "loaded" to hide skeleton
+                                            return newStates;
+                                          });
+                                        }}
+                                      />
+                                    )}
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                        ) : signedUrls.length > 0 && imageLoadStates.length === signedUrls.length && imageLoadStates.every(loaded => loaded) ? (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            {signedUrls.map((url, index) => (
-                              <div
-                                key={index}
-                                className="rounded-lg overflow-hidden border border-border/50 bg-muted/20"
-                              >
-                                <img
-                                  src={url}
-                                  alt={`Screenshot ${index + 1}`}
-                                  className="w-full h-auto object-contain max-h-64"
-                                />
+                            ) : signedUrls.length > 0 && imageLoadStates.length === signedUrls.length && imageLoadStates.every(loaded => loaded) ? (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {signedUrls.map((url, index) => (
+                                  <div
+                                    key={index}
+                                    className="rounded-lg overflow-hidden border border-border/50 bg-muted/20"
+                                  >
+                                    <img
+                                      src={url}
+                                      alt={`Screenshot ${index + 1}`}
+                                      className="w-full h-auto object-contain max-h-64"
+                                      onError={(e) => {
+                                        // Hide broken images
+                                        e.currentTarget.style.display = 'none';
+                                      }}
+                                    />
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">Images are being processed...</p>
+                            )}
+                            {!isLoadingImages && signedUrls.length === 0 && imageUrls.length > 0 && (
+                              <p className="text-sm text-muted-foreground">Images were not found or have been deleted.</p>
+                            )}
+                          </>
                         ) : (
                           <p className="text-sm text-muted-foreground">No images available.</p>
                         )}

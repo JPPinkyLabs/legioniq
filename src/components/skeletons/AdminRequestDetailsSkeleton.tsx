@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Image as ImageIcon, Info } from "lucide-react";
+import { FileText, Image as ImageIcon, Info, MessagesSquare } from "lucide-react";
 import { useIsMobile } from "@/hooks/other/use-mobile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -37,7 +37,7 @@ export const AdminRequestDetailsSkeleton = () => {
             className={`${isMobile ? 'flex-col items-center justify-center gap-1 h-auto py-2 min-h-[60px]' : 'w-full justify-start'} data-[state=active]:bg-background`}
             disabled
           >
-            <FileText className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4 mr-2'}`} />
+            <MessagesSquare className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4 mr-2'}`} />
             <span className={isMobile ? 'text-xs' : ''}>Response</span>
           </TabsTrigger>
           <TabsTrigger 
@@ -86,18 +86,30 @@ export const AdminRequestDetailsSkeleton = () => {
           </TabsContent>
 
           <TabsContent value="prompt" className={`${isMobile ? 'mt-0 pt-6' : 'mt-0'} overflow-hidden`}>
-            <ScrollArea className="h-full">
-              <div className="w-full max-w-3xl mx-auto space-y-3 pb-[100px]">
-                <Skeleton className="h-7 w-40 bg-muted-foreground/30" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                  <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
-                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                  <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
-                </div>
+            <div className="w-full max-w-3xl mx-auto space-y-3">
+              <Skeleton className="h-7 w-40 bg-muted-foreground/30" />
+              <div className="h-72 border border-border rounded-lg overflow-hidden bg-muted/20">
+                <ScrollArea className="h-full">
+                  <div className="p-4 space-y-2">
+                    <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-4/5 bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-4/5 bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                    <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                  </div>
+                </ScrollArea>
               </div>
-            </ScrollArea>
+            </div>
           </TabsContent>
 
           <TabsContent value="response" className={`${isMobile ? 'mt-0 pt-6' : 'mt-0'} overflow-hidden`}>

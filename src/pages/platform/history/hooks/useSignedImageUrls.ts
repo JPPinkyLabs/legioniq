@@ -41,8 +41,13 @@ export const useSignedImageUrls = (imageUrls: string[] | null | undefined) => {
               .createSignedUrl(filePath, 3600); // 1 hour expiry
 
             if (error) {
+              // Silently handle "Object not found" errors as they're expected for deleted/missing images
+              if (error.message?.includes('Object not found') || error.message?.includes('404')) {
+                return null; // Return null for missing images
+              }
+              // Only log unexpected errors
               console.error('Error creating signed URL:', error);
-              return imageUrl; // Fallback to original URL
+              return null;
             } else {
               return data.signedUrl;
             }
@@ -52,7 +57,8 @@ export const useSignedImageUrls = (imageUrls: string[] | null | undefined) => {
         });
 
         const urls = await Promise.all(signedUrlPromises);
-        setSignedUrls(urls);
+        // Filter out null values (missing images)
+        setSignedUrls(urls.filter((url): url is string => url !== null));
       } catch (error) {
         console.error('Error processing signed URLs:', error);
         // Fallback to original URLs
