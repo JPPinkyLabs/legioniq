@@ -1,4 +1,4 @@
-import { Sparkles, MessagesSquare, Plus, FileText, type LucideIcon } from "lucide-react";
+import { Sparkles, MessagesSquare, Plus, FileText, ListChecks, type LucideIcon } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useUserUtils } from "@/hooks/auth/useUserUtils";
@@ -88,7 +88,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Prompts",
       url: "/admin/prompts",
       icon: FileText,
-      isActive: location.pathname === "/admin/prompts",
+      isActive: location.pathname === "/admin/prompts" || location.pathname.startsWith("/admin/prompts/"),
+    },
+    {
+      title: "Requests",
+      url: "/admin/requests",
+      icon: ListChecks,
+      isActive: location.pathname === "/admin/requests" || location.pathname.startsWith("/admin/requests/"),
     }
   ];
 

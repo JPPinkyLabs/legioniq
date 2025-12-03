@@ -17,6 +17,8 @@ import History from "./pages/platform/history/History";
 import Details from "./pages/platform/history/Details";
 import Prompts from "./pages/platform/admin/prompts/Prompts";
 import PromptDetails from "./pages/platform/admin/prompts/PromptDetails";
+import Requests from "./pages/platform/admin/requests/Requests";
+import RequestDetails from "./pages/platform/admin/requests/RequestDetails";
 import PrivateRoute from "./components/routes/PrivateRoute";
 import AdminRoute from "./components/routes/AdminRoute";
 import PublicRoute from "./components/routes/PublicRoute";
@@ -113,6 +115,26 @@ const AppContent = () => {
             <AdminRoute>
               <AuthenticatedLayout>
                 <PromptDetails />
+              </AuthenticatedLayout>
+            </AdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/requests" 
+          element={
+            <AdminRoute>
+              <AuthenticatedLayout>
+                <Requests />
+              </AuthenticatedLayout>
+            </AdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/requests/:id" 
+          element={
+            <AdminRoute>
+              <AuthenticatedLayout>
+                <RequestDetails />
               </AuthenticatedLayout>
             </AdminRoute>
           } 
