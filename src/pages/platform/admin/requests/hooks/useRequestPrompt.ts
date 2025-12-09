@@ -1,9 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-
-interface RequestPromptResponse {
-  prompt: string;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 export const useRequestPrompt = (requestId: string | undefined) => {
   const {
@@ -16,21 +12,26 @@ export const useRequestPrompt = (requestId: string | undefined) => {
     queryFn: async () => {
       if (!requestId) throw new Error("Request ID is required");
 
-      const response = await api.invoke<RequestPromptResponse>("get-request-prompt", {
-        request_id: requestId,
-      });
+      const { data: requestData, error: queryError } = await supabase
+        .from("requests")
+        .select("system_prompt, user_prompt")
+        .eq("id", requestId)
+        .single();
 
-      if (!response.success || !response.data) {
-        throw new Error(response.message || "Failed to get request prompt");
-      }
+      if (queryError) throw queryError;
+      if (!requestData) throw new Error("Request not found");
 
-      return response.data.prompt;
+      return {
+        systemPrompt: requestData.system_prompt || null,
+        userPrompt: requestData.user_prompt || null,
+      };
     },
     enabled: !!requestId,
   });
 
   return {
-    prompt: data,
+    systemPrompt: data?.systemPrompt,
+    userPrompt: data?.userPrompt,
     isLoading,
     error,
     refetch,

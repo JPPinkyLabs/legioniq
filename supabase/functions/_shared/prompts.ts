@@ -22,6 +22,29 @@ export async function getCategoryLabelFromId(
 }
 
 /**
+ * Get category details (label and description) from category ID
+ */
+export async function getCategoryFromId(
+  supabaseAdmin: any,
+  categoryId: string
+): Promise<{ label: string; description: string }> {
+  const { data: categoryData, error: categoryError } = await supabaseAdmin
+    .from("categories")
+    .select("label, description")
+    .eq("id", categoryId)
+    .single();
+  
+  if (categoryError || !categoryData) {
+    throw new Error("Failed to fetch category: " + (categoryError?.message || "Unknown error"));
+  }
+  
+  return {
+    label: categoryData.label,
+    description: categoryData.description,
+  };
+}
+
+/**
  * Get advice details from advice ID
  */
 export async function getAdviceFromId(
@@ -148,21 +171,22 @@ export async function getPromptFromDatabase(
 }
 
 /**
- * Build the user prompt with advice, preferences, and OCR text
+ * Build the user prompt with category, advice, preferences, and OCR text
  */
 export async function buildUserPrompt(
   supabaseAdmin: any,
   ocrText: string,
-  categoryLabel: string,
+  categoryId: string,
   adviceId: string,
   userId: string,
   imageCount: number
 ): Promise<string> {
+  const category = await getCategoryFromId(supabaseAdmin, categoryId);
   const advice = await getAdviceFromId(supabaseAdmin, adviceId);
   const preferences = await getUserPreferences(supabaseAdmin, userId);
   const preferencesText = await formatUserPreferences(supabaseAdmin, preferences);
   
-  let prompt = `I need an analysis on ${advice.name.toLowerCase()}. ${advice.description}`;
+  let prompt = `I need an analysis on the ${category.label} category. ${category.description}\n\nSpecifically, I'm looking for advice on ${advice.name.toLowerCase()}. ${advice.description}`;
   
   if (preferencesText && preferencesText.trim().length > 0) {
     prompt += `\n\nConsidering my gaming profile:\n${preferencesText}`;
@@ -179,7 +203,7 @@ export async function buildUserPrompt(
       ? `${imageCount} game screenshots` 
       : `a game screenshot`;
     
-    prompt += `\n\nI'm analyzing ${imageText} related to ${advice.name.toLowerCase()}, but no readable text could be extracted. Please provide general recommendations based on the ${categoryLabel} category and what you would typically see in game screenshots related to this type of analysis.`;
+    prompt += `\n\nI'm analyzing ${imageText} related to ${advice.name.toLowerCase()}, but no readable text could be extracted. Please provide general recommendations based on the ${category.label} category and what you would typically see in game screenshots related to this type of analysis.`;
   }
   
   return prompt;

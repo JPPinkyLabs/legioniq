@@ -12,7 +12,7 @@ import { checkCache, saveToCache } from "../_shared/cache.ts";
 import { uploadAllImagesToStorage, deleteImagesFromStorage } from "../_shared/storage.ts";
 import { callOpenAI, getOpenAIModel } from "../_shared/openai.ts";
 import { checkDailyLimit, getMaxDailyImages } from "../_shared/daily-limit.ts";
-import { getCategoryLabelFromId, getPromptFromDatabase, buildUserPrompt } from "../_shared/prompts.ts";
+import { getPromptFromDatabase, buildUserPrompt } from "../_shared/prompts.ts";
 
 /**
  * Generate a unique request ID
@@ -34,9 +34,11 @@ async function createRequest(
     ocrText: string;
     modelResponse: string;
     imageUrls: string[];
+    systemPrompt?: string;
+    userPrompt?: string;
   }
 ): Promise<void> {
-  const { requestId, userId, categoryId, adviceId, ocrText, modelResponse, imageUrls } = params;
+  const { requestId, userId, categoryId, adviceId, ocrText, modelResponse, imageUrls, systemPrompt, userPrompt } = params;
   
   const { error: insertError } = await supabaseAdmin
     .from("requests")
@@ -48,6 +50,8 @@ async function createRequest(
       ocr_text: ocrText,
       model_response: modelResponse,
       image_url: imageUrls,
+      system_prompt: systemPrompt,
+      user_prompt: userPrompt,
     });
   
   if (insertError) {
@@ -135,6 +139,17 @@ serve(async (req) => {
         }
       }
 
+      // Reconstruct prompts for cache hit (same logic as new request)
+      const systemPrompt = await getPromptFromDatabase(supabaseAdmin, categoryId);
+      const userPrompt = await buildUserPrompt(
+        supabaseAdmin,
+        cachedOcrText,
+        categoryId,
+        adviceId,
+        userId,
+        imagesArray.length
+      );
+
       const requestId = generateRequestId();
       let imageUrls: string[] = [];
 
@@ -148,6 +163,8 @@ serve(async (req) => {
           ocrText: cachedOcrText,
           modelResponse: cachedModelResponse,
           imageUrls,
+          systemPrompt,
+          userPrompt,
         });
 
         return successResponse({
@@ -164,8 +181,7 @@ serve(async (req) => {
       }
     }
 
-    // Step 8: Get category and prompt from database
-    const categoryLabel = await getCategoryLabelFromId(supabaseAdmin, categoryId);
+    // Step 8: Get prompt from database
     const systemPrompt = await getPromptFromDatabase(supabaseAdmin, categoryId);
 
     // Step 9: Upload images to storage
@@ -182,7 +198,7 @@ serve(async (req) => {
     const userPrompt = await buildUserPrompt(
       supabaseAdmin,
       normalizedOcrText,
-      categoryLabel,
+      categoryId,
       adviceId,
       userId,
       imagesArray.length
@@ -208,6 +224,8 @@ serve(async (req) => {
         ocrText: normalizedOcrText,
         modelResponse: aiResponse,
         imageUrls,
+        systemPrompt,
+        userPrompt,
       });
     } catch (insertError: any) {
       if (imageUrls.length > 0) {

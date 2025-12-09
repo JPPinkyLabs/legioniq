@@ -28,7 +28,7 @@ const RequestDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { request, isLoading, error, refetch } = useAdminRequest(id);
-  const { prompt, isLoading: isLoadingPrompt } = useRequestPrompt(id);
+  const { systemPrompt, userPrompt, isLoading: isLoadingPrompt } = useRequestPrompt(id);
   const [activeTab, setActiveTab] = useState("overview");
   const isMobile = useIsMobile();
   
@@ -266,44 +266,91 @@ const RequestDetails = () => {
                   </TabsContent>
 
                   <TabsContent value="prompt" className={`${isMobile ? 'mt-0 pt-6' : 'mt-0'} overflow-hidden`}>
-                    <div className="w-full max-w-3xl mx-auto space-y-3">
-                      <h2 className="text-xl font-semibold">Prompt Sent to AI</h2>
-                      <div className="h-72 border border-border rounded-lg overflow-hidden bg-muted/20">
-                        {isLoadingPrompt ? (
-                          <ScrollArea className="h-full">
-                            <div className="p-4 space-y-2">
-                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-4/5 bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-4/5 bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
-                              <Skeleton className="h-4 w-full bg-muted-foreground/30" />
-                            </div>
-                          </ScrollArea>
-                        ) : prompt ? (
-                          <ScrollArea className="h-full">
-                            <div className="p-4">
-                              <p className="text-sm text-foreground whitespace-pre-wrap break-words leading-relaxed">
-                                {prompt}
-                              </p>
-                            </div>
-                          </ScrollArea>
-                        ) : (
-                          <div className="p-4">
-                            <p className="text-sm text-muted-foreground">No prompt available.</p>
+                    <ScrollArea className="h-full">
+                      <div className="w-full max-w-3xl mx-auto space-y-6 pb-6">
+                        <h2 className="text-xl font-semibold">Prompts Sent to AI</h2>
+                        
+                        {/* System Prompt */}
+                        <div className="space-y-2">
+                          <h3 className="text-sm font-medium text-muted-foreground">System Prompt</h3>
+                          <div className="h-72 border border-border rounded-lg overflow-hidden bg-muted/20">
+                            {isLoadingPrompt ? (
+                              <ScrollArea className="h-full">
+                                <div className="p-4 space-y-2">
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-4/5 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-4/5 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                </div>
+                              </ScrollArea>
+                            ) : systemPrompt ? (
+                              <ScrollArea className="h-full">
+                                <div className="p-4">
+                                  <p className="text-sm text-foreground whitespace-pre-wrap break-words leading-relaxed">
+                                    {systemPrompt}
+                                  </p>
+                                </div>
+                              </ScrollArea>
+                            ) : (
+                              <div className="p-4">
+                                <p className="text-sm text-muted-foreground">No system prompt available.</p>
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </div>
+
+                        {/* User Prompt */}
+                        <div className="space-y-2">
+                          <h3 className="text-sm font-medium text-muted-foreground">User Prompt</h3>
+                          <div className="h-72 border border-border rounded-lg overflow-hidden bg-muted/20">
+                            {isLoadingPrompt ? (
+                              <ScrollArea className="h-full">
+                                <div className="p-4 space-y-2">
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-4/5 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-5/6 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-4/5 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-3/4 bg-muted-foreground/30" />
+                                  <Skeleton className="h-4 w-full bg-muted-foreground/30" />
+                                </div>
+                              </ScrollArea>
+                            ) : userPrompt ? (
+                              <ScrollArea className="h-full">
+                                <div className="p-4">
+                                  <p className="text-sm text-foreground whitespace-pre-wrap break-words leading-relaxed">
+                                    {userPrompt}
+                                  </p>
+                                </div>
+                              </ScrollArea>
+                            ) : (
+                              <div className="p-4">
+                                <p className="text-sm text-muted-foreground">No user prompt available.</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </ScrollArea>
                   </TabsContent>
 
                   <TabsContent value="response" className={`${isMobile ? 'mt-0 pt-6' : 'mt-0'} overflow-hidden`}>

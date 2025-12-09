@@ -4,7 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase-admin.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { successResponse, errorResponse } from "../_shared/response.ts";
-import { getCategoryLabelFromId, buildUserPrompt } from "../_shared/prompts.ts";
+import { getPromptFromDatabase, buildUserPrompt } from "../_shared/prompts.ts";
 
 interface GetRequestPromptRequest {
   request_id: string;
@@ -100,24 +100,25 @@ serve(async (req) => {
       );
     }
 
-    // Get category label
-    const categoryLabel = await getCategoryLabelFromId(supabaseAdmin, request.category_id);
+    // Get system prompt from database
+    const systemPrompt = await getPromptFromDatabase(supabaseAdmin, request.category_id);
 
     // Get image count
     const imageCount = Array.isArray(request.image_url) ? request.image_url.length : (request.image_url ? 1 : 0);
 
-    // Reconstruct the prompt using the same logic
-    const reconstructedPrompt = await buildUserPrompt(
+    // Reconstruct the user prompt using the same logic
+    const userPrompt = await buildUserPrompt(
       supabaseAdmin,
       request.ocr_text || "",
-      categoryLabel,
+      request.category_id,
       request.advice_id,
       request.user_id,
       imageCount
     );
 
     return successResponse({
-      prompt: reconstructedPrompt,
+      systemPrompt,
+      userPrompt,
     });
   } catch (error) {
     return errorResponse(
