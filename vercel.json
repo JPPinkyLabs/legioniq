@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/mvp1/:path*",
+      "destination": "/mvp1/index.html"
     }
   ]
 }

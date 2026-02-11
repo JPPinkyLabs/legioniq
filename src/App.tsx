@@ -37,7 +37,7 @@ const AppContent = () => {
   const { isOpen, closeModal } = useSettingsModal();
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/mvp1">
       <NProgressHandler />
       <Routes>
         <Route path="/" element={<Landing />} />
