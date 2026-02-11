@@ -1,8 +1,20 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/mvp1/:path*",
-      "destination": "/mvp1/index.html"
+      "source": "/mvp1/(.*)",
+      "destination": "/$1"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/mvp1/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/mvp1/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
