@@ -7,6 +7,10 @@
       "dest": "/assets/$1"
     },
     {
+      "src": "/mvp1$",
+      "dest": "/index.html"
+    },
+    {
       "src": "/mvp1/(.*)",
       "dest": "/index.html"
     }
